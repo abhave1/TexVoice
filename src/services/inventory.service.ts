@@ -37,30 +37,162 @@ export class InventoryService {
   }
 
   /**
-   * Format inventory results as human-readable string
+   * Format a single item with RICH data (availability, price, condition, specs, etc.)
+   * This is the "One Smart Tool" approach - return everything in one shot
    */
-  formatResults(items: InventoryItem[]): string {
-    if (items.length === 0) {
-      return "";
+  formatItemRich(item: InventoryItem): string {
+    const parts: string[] = [];
+
+    // Model and category
+    parts.push(`${item.model} ${item.category}`);
+
+    // Availability (CRITICAL)
+    if (item.available > 0) {
+      parts.push(`${item.available} available`);
+    } else {
+      parts.push(`currently unavailable`);
     }
 
-    return items.map(item =>
-      `${item.model} (${item.available} available at $${item.price_per_day}/day)`
-    ).join(", ");
+    // Price
+    parts.push(`$${item.price_per_day} per day`);
+
+    // Condition if available
+    if (item.condition) {
+      parts.push(`${item.condition} condition`);
+    }
+
+    // Year if available
+    if (item.year) {
+      parts.push(`${item.year} model`);
+    }
+
+    // Specs if available
+    if (item.specs) {
+      parts.push(`(${item.specs})`);
+    }
+
+    return parts.join(', ');
+  }
+
+  /**
+   * Smart sort items based on query intent
+   * - "cheap" or "affordable" -> sort by price ascending
+   * - "new" or "latest" -> sort by year descending
+   * - default -> sort by availability (most available first)
+   */
+  smartSort(items: InventoryItem[], query: string): InventoryItem[] {
+    const lowerQuery = query.toLowerCase();
+
+    if (lowerQuery.includes('cheap') || lowerQuery.includes('affordable') || lowerQuery.includes('budget')) {
+      // Sort by price: cheapest first
+      return [...items].sort((a, b) => a.price_per_day - b.price_per_day);
+    }
+
+    if (lowerQuery.includes('new') || lowerQuery.includes('latest') || lowerQuery.includes('newest')) {
+      // Sort by year: newest first
+      return [...items].sort((a, b) => (b.year || 0) - (a.year || 0));
+    }
+
+    if (lowerQuery.includes('best') || lowerQuery.includes('top') || lowerQuery.includes('excellent')) {
+      // Sort by condition: Excellent first
+      return [...items].sort((a, b) => {
+        const conditionRank = { 'Excellent': 3, 'Good': 2, 'Fair': 1 };
+        return (conditionRank[b.condition as keyof typeof conditionRank] || 0) -
+               (conditionRank[a.condition as keyof typeof conditionRank] || 0);
+      });
+    }
+
+    // Default: sort by availability (most available first)
+    return [...items].sort((a, b) => b.available - a.available);
+  }
+
+  /**
+   * Build summary response for large result sets (6+ items)
+   * Returns: count, price range, top 3 picks, clarifying question
+   */
+  buildSummary(items: InventoryItem[], query: string): string {
+    const count = items.length;
+    const prices = items.map(i => i.price_per_day);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+
+    // Smart sort and get top 3
+    const sorted = this.smartSort(items, query);
+    const top3 = sorted.slice(0, 3);
+
+    const response: string[] = [];
+
+    // Summary line
+    response.push(`I found ${count} machines matching "${query}".`);
+    response.push(`Prices range from $${minPrice} to $${maxPrice} per day.`);
+
+    // Top 3 picks
+    response.push(`Here are my top 3 recommendations:`);
+    top3.forEach((item, idx) => {
+      response.push(`${idx + 1}. ${this.formatItemRich(item)}`);
+    });
+
+    // Clarifying question to narrow down
+    response.push(`Would you like to narrow this down by size, price range, or year?`);
+
+    return response.join(' ');
   }
 
   /**
    * Search and format results for tool response
+   * HYBRID APPROACH:
+   * - 0 results: Not available message
+   * - 1-5 results: Full rich details for all
+   * - 6+ results: Summary mode with top 3 recommendations
+   *
+   * SMART SORTING:
+   * - Detects "cheap" in query -> sorts by price
+   * - Detects "new" in query -> sorts by year
+   * - Default -> sorts by availability
    */
   searchAndFormat(query: string): string {
     const matches = this.search(query);
 
-    if (matches.length > 0) {
-      const formattedList = this.formatResults(matches);
-      return `We have the following available: ${formattedList}`;
+    // TIER 1: No results
+    if (matches.length === 0) {
+      return `I checked the lot, but I don't see any ${query} available right now. I can connect you with a manager to check other options.`;
     }
 
-    return `I checked the lot, but I don't see any ${query} available right now.`;
+    // Separate available vs unavailable items
+    const available = matches.filter(m => m.available > 0);
+    const unavailable = matches.filter(m => m.available === 0);
+
+    // TIER 4: 6+ results -> Summary mode
+    if (available.length >= 6) {
+      return this.buildSummary(available, query);
+    }
+
+    // TIER 2 & 3: 1-5 results -> Full details
+    const response: string[] = [];
+
+    if (available.length > 0) {
+      // Smart sort even for small lists
+      const sorted = this.smartSort(available, query);
+
+      if (sorted.length === 1) {
+        const item = sorted[0];
+        response.push(`Yes, we have the ${this.formatItemRich(item)}.`);
+      } else {
+        response.push(`We have ${sorted.length} options:`);
+        sorted.forEach((item, idx) => {
+          response.push(`${idx + 1}. ${this.formatItemRich(item)}`);
+        });
+      }
+    }
+
+    // Mention unavailable items (in case they ask about specific model)
+    if (unavailable.length > 0 && unavailable.length < 3) {
+      unavailable.forEach(item => {
+        response.push(`The ${item.model} is currently unavailable, but usually rents for $${item.price_per_day}/day.`);
+      });
+    }
+
+    return response.join(' ');
   }
 }
 

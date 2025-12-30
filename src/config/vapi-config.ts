@@ -5,9 +5,11 @@ import { VapiTool, VapiAssistant } from '../types/vapi.types';
 
 /**
  * Get the server URL from environment or use default
+ * Ensures no trailing slash to prevent //tools issue
  */
 const getServerUrl = (): string => {
-  return process.env.SERVER_URL || 'https://texintel.com';
+  const url = process.env.SERVER_URL || 'https://texintel.com';
+  return url.endsWith('/') ? url.slice(0, -1) : url;
 };
 
 /**
@@ -24,13 +26,13 @@ export const VAPI_TOOLS: VapiTool[] = [
     type: 'function',
     function: {
       name: 'check_inventory',
-      description: 'Check availability of heavy equipment in inventory. Use this when customers ask about equipment availability, specific machinery, or rental options.',
+      description: 'Check heavy equipment inventory and get comprehensive details. Returns availability, pricing, condition, year, and specs in ONE response. Use this for ANY question about equipment - availability, price, condition, specs, or comparisons. Examples: "Do you have dozers?", "How much is the excavator?", "Any cheap skid steers?", "What condition is it in?"',
       parameters: {
         type: 'object',
         properties: {
           query: {
             type: 'string',
-            description: 'Type of equipment to search for (e.g., excavator, bulldozer, dozer, loader, skid steer, dump truck, crane, backhoe)'
+            description: 'Type of equipment to search for (e.g., excavator, bulldozer, dozer, loader, skid steer, dump truck, crane, backhoe) or specific model (e.g., Cat D6, Bobcat T76)'
           }
         },
         required: ['query']

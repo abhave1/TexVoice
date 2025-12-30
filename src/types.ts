@@ -40,4 +40,7 @@ export interface InventoryItem {
   category: string;
   available: number;
   price_per_day: number;
+  condition?: string;
+  year?: number;
+  specs?: string;
 }

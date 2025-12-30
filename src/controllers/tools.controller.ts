@@ -37,7 +37,19 @@ export async function handleToolExecution(request: FastifyRequest, reply: Fastif
   // Route to appropriate tool handler
   if (functionName === 'check_inventory') {
     result = handleCheckInventory(args);
-    console.log(`[ToolExecution] ${functionName} completed - Result length: ${result.length} chars`);
+
+    // Log result type
+    let resultType = 'no matches';
+    if (result.includes('I found')) {
+      resultType = 'summary mode (6+ items)';
+    } else if (result.includes('We have')) {
+      resultType = 'full details (2-5 items)';
+    } else if (result.includes('Yes, we have')) {
+      resultType = 'single item';
+    }
+
+    console.log(`[ToolExecution] ${functionName} completed - Query: "${args.query}" -> ${resultType}`);
+    console.log(`[ToolExecution] Response preview: ${result.substring(0, 120)}...`);
   } else {
     console.warn(`[ToolExecution] Unknown tool requested: ${functionName}`);
   }
