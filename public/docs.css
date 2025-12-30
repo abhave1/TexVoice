@@ -1,0 +1,162 @@
+/* Tex Intel - Swagger UI Custom Theme */
+
+/* Import Cairo Font */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap');
+
+body {
+    font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+/* Base Colors from dashboard.css */
+:root {
+    --tex-red: #DC143C;
+    --tex-blue: #1E40AF;
+    --tex-black: #000000;
+    --tex-white: #FFFFFF;
+    --tex-gray: #F3F4F6;
+}
+
+/* Top Bar */
+.swagger-ui .topbar {
+    background-color: var(--tex-white) !important;
+    border-bottom: 2px dashed rgba(0, 0, 0, 0.2);
+    padding: 20px 0;
+}
+
+.swagger-ui .topbar a {
+    display: none; /* Hide default logo to replace or style text */
+}
+
+/* Main Container */
+.swagger-ui .wrapper {
+    max-width: 1400px !important;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Info Section */
+.swagger-ui .info {
+    margin: 40px 0 !important;
+}
+
+.swagger-ui .info .title {
+    font-family: 'Cairo', sans-serif !important;
+    font-size: clamp(3rem, 6vw, 4rem) !important;
+    font-weight: 700 !important;
+    color: var(--tex-black) !important;
+    letter-spacing: -0.05em;
+}
+
+.swagger-ui .info .title small {
+    display: inline-block;
+    margin-left: 10px;
+    background: var(--tex-black);
+    color: var(--tex-white);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 1rem !important;
+    vertical-align: middle;
+}
+
+/* Method Badges */
+.swagger-ui .opblock-tag {
+    font-family: 'Cairo', sans-serif !important;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    color: var(--tex-black) !important;
+    border-bottom: 2px dashed rgba(0, 0, 0, 0.2) !important;
+    padding: 20px 0 !important;
+}
+
+/* Operations Blocks */
+.swagger-ui .opblock {
+    border: 2px dashed rgba(0, 0, 0, 0.2) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: var(--tex-white) !important;
+    margin: 0 0 20px 0 !important;
+    transition: all 0.2s ease;
+}
+
+.swagger-ui .opblock:hover {
+    border-color: var(--tex-black) !important;
+    transform: translateY(-2px);
+}
+
+.swagger-ui .opblock .opblock-summary {
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.1) !important;
+}
+
+.swagger-ui .opblock .opblock-summary-method {
+    border-radius: 4px !important;
+    font-family: 'Cairo', sans-serif !important;
+    font-weight: 700 !important;
+}
+
+/* GET Method */
+.swagger-ui .opblock.opblock-get {
+    border-left: 4px solid var(--tex-blue) !important;
+    background: rgba(30, 64, 175, 0.02) !important;
+}
+.swagger-ui .opblock.opblock-get .opblock-summary-method {
+    background: var(--tex-blue) !important;
+}
+
+/* POST Method */
+.swagger-ui .opblock.opblock-post {
+    border-left: 4px solid var(--tex-red) !important;
+    background: rgba(220, 20, 60, 0.02) !important;
+}
+.swagger-ui .opblock.opblock-post .opblock-summary-method {
+    background: var(--tex-red) !important;
+}
+
+/* Buttons */
+.swagger-ui .btn {
+    font-family: 'Cairo', sans-serif !important;
+    font-weight: 600 !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+}
+
+.swagger-ui .btn.execute {
+    background-color: var(--tex-black) !important;
+    color: var(--tex-white) !important;
+    border-color: var(--tex-black) !important;
+    width: 100%;
+    padding: 10px !important;
+}
+
+.swagger-ui .btn.authorize {
+    background-color: transparent !important;
+    color: var(--tex-black) !important;
+    border: 2px solid var(--tex-black) !important;
+}
+
+.swagger-ui .btn.authorize svg {
+    fill: var(--tex-black) !important;
+}
+
+/* Input Fields */
+.swagger-ui input[type=text], 
+.swagger-ui textarea {
+    font-family: 'Courier New', monospace !important;
+    background: var(--tex-gray) !important;
+    border: 2px dashed rgba(0, 0, 0, 0.2) !important;
+}
+
+.swagger-ui select {
+    border: 2px dashed rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Models Section */
+.swagger-ui section.models {
+    border: 2px dashed rgba(0, 0, 0, 0.2) !important;
+    border-radius: 0 !important;
+    padding: 20px !important;
+}
+
+.swagger-ui section.models h4 {
+    font-family: 'Cairo', sans-serif !important;
+    font-size: 1.5rem !important;
+}

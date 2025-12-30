@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tex Intel - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dashboard.css">
+</head>
+<body>
+    <div class="page-wrapper">
+        <header>
+            <div class="header-content">
+                <div class="brand-row">
+                    <a href="/" class="logo-link">
+                        <img src="/logo.svg" alt="Tex Intel" style="height: 4rem; width: auto; display: block;">
+                    </a>
+                    <h1>Tex Intel</h1>
+                </div>
+                <p class="subtitle">Voice AI Analytics & Management</p>
+                <div class="header-actions">
+                    <button onclick="refreshAll()" class="btn btn-primary">Refresh All</button>
+                    <a href="/documentation" class="btn btn-secondary" target="_blank">API Docs</a>
+                </div>
+            </div>
+            <div class="divider-stack">
+                <div class="bar bar-1"></div>
+                <div class="bar bar-2"></div>
+                <div class="bar bar-3"></div>
+                <div class="bar bar-4"></div>
+                <div class="header-banner">
+                    <span>Voice AI Analytics & Operations</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stats Overview -->
+        <section class="stats-grid" id="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total Calls</div>
+                <div class="stat-value" id="totalCalls">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Cost</div>
+                <div class="stat-value" id="totalCost">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg Duration</div>
+                <div class="stat-value" id="avgDuration">0s</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active Tools</div>
+                <div class="stat-value" id="activeTools">-</div>
+            </div>
+        </section>
+
+        <!-- Tabs -->
+        <nav class="tabs">
+            <button class="tab active" onclick="showTab('calls')">Recent Calls</button>
+            <button class="tab" onclick="showTab('billing')">Billing</button>
+            <button class="tab" onclick="showTab('tools')">Tools</button>
+        </nav>
+
+        <!-- Recent Calls Tab -->
+        <section id="tab-calls" class="tab-content active">
+            <div class="section-header">
+                <h2>Recent Calls</h2>
+                <button onclick="loadCalls()" class="btn btn-sm">Refresh</button>
+            </div>
+            <div class="table-container">
+                <table id="callsTable">
+                    <thead>
+                        <tr>
+                            <th>Date/Time</th>
+                            <th>Phone Number</th>
+                            <th>Duration</th>
+                            <th>Cost</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="callsTableBody">
+                        <tr><td colspan="6" class="loading">Loading calls...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Billing Tab -->
+        <section id="tab-billing" class="tab-content">
+            <div class="section-header">
+                <h2>Billing Overview</h2>
+                <button onclick="loadBilling()" class="btn btn-sm">Refresh</button>
+            </div>
+            <div id="billingContent">
+                <p class="loading">Loading billing data...</p>
+            </div>
+        </section>
+
+        <!-- Tools Tab -->
+        <section id="tab-tools" class="tab-content">
+            <div class="section-header">
+                <h2>Configured Tools</h2>
+                <button onclick="loadTools()" class="btn btn-sm">Refresh</button>
+            </div>
+            <div id="toolsContent">
+                <p class="loading">Loading tools...</p>
+            </div>
+        </section>
+
+        <!-- Call Detail Modal -->
+        <div id="callModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Call Details</h2>
+                <div id="callDetails">
+                    <p class="loading">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Tex Intel API | Powered by Vapi</p>
+    </footer>
+
+    <script src="/dashboard.js"></script>
+</body>
+</html>

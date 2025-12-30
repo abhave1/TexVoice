@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: tex-api-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - HOST=0.0.0.0
+      - LOG_LEVEL=debug
+    volumes:
+      - ./src:/app/src:ro
+      - ./dist:/app/dist
+    command: npm run dev
+    restart: unless-stopped
