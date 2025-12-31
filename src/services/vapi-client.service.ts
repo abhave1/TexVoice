@@ -20,9 +20,7 @@ export class VapiClient {
   constructor(apiKey?: string) {
     this.apiKey = apiKey || process.env.VAPI_API_KEY || '';
 
-    if (this.apiKey) {
-      console.log('[VapiClient] API key configured successfully');
-    } else {
+    if (!this.apiKey) {
       console.warn('[VapiClient] WARNING: No API key provided. Set VAPI_API_KEY environment variable.');
     }
   }
@@ -36,9 +34,6 @@ export class VapiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const method = options.method || 'GET';
-    const startTime = Date.now();
-
-    console.log(`[VapiClient] ${method} ${endpoint}`);
 
     try {
       const response = await fetch(url, {
@@ -50,24 +45,15 @@ export class VapiClient {
         }
       });
 
-      const duration = Date.now() - startTime;
-
       if (!response.ok) {
         const error = await response.text();
-        console.error(`[VapiClient] ${method} ${endpoint} - FAILED (${response.status}) - ${duration}ms`, {
-          status: response.status,
-          error: error.substring(0, 200)
-        });
+        console.error(`[VapiClient] ${method} ${endpoint} - ${response.status}:`, error.substring(0, 200));
         throw new Error(`Vapi API Error (${response.status}): ${error}`);
       }
 
-      console.log(`[VapiClient] ${method} ${endpoint} - SUCCESS (${response.status}) - ${duration}ms`);
       return response.json() as Promise<T>;
     } catch (error: any) {
-      const duration = Date.now() - startTime;
-      console.error(`[VapiClient] ${method} ${endpoint} - ERROR - ${duration}ms`, {
-        message: error.message
-      });
+      console.error(`[VapiClient] ${method} ${endpoint} - ERROR:`, error.message);
       throw error;
     }
   }

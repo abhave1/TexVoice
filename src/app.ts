@@ -13,17 +13,10 @@ import { inboundRoutes } from './routes/inbound';
 import { toolRoutes } from './routes/tools';
 import { adminRoutes } from './routes/admin';
 
-// Initialize Fastify with logging
+// Initialize Fastify with minimal logging
 const fastify = Fastify({
-  logger: {
-    level: process.env.LOG_LEVEL || 'info',
-    transport: process.env.NODE_ENV === 'development' ? {
-      target: 'pino-pretty',
-      options: {
-        colorize: true
-      }
-    } : undefined
-  }
+  logger: false,
+  disableRequestLogging: true
 });
 
 // Register Swagger for API documentation
@@ -119,7 +112,6 @@ fastify.get('/api', {
 
 // Graceful shutdown handler
 const closeGracefully = async (signal: string) => {
-  fastify.log.info(`Received ${signal}, closing server gracefully`);
   await fastify.close();
   process.exit(0);
 };
@@ -133,9 +125,9 @@ const start = async () => {
     const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
     const host = process.env.HOST || '0.0.0.0';
     await fastify.listen({ port, host });
-    fastify.log.info(`🚀 Server running on ${host}:${port}`);
+    console.log(`🚀 Server running on ${host}:${port}`);
   } catch (err) {
-    fastify.log.error(err);
+    console.error('Failed to start server:', err);
     process.exit(1);
   }
 };

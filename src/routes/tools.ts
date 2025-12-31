@@ -28,7 +28,12 @@ export async function toolRoutes(fastify: FastifyInstance) {
                       type: 'object',
                       properties: {
                         name: { type: 'string' },
-                        arguments: { type: 'string' }
+                        arguments: {
+                          oneOf: [
+                            { type: 'string' },
+                            { type: 'object' }
+                          ]
+                        }
                       }
                     }
                   }

@@ -43,11 +43,39 @@ export const VAPI_TOOLS: VapiTool[] = [
       url: `${getServerUrl()}/tools`
     }
   }
-  // Add more tools here as needed:
-  // - check_pricing
-  // - book_rental
-  // - check_availability
-  // - get_quote
+
+  // NOTE: Transfer tools are commented out because Vapi's transferCall type
+  // is not yet supported via API. You MUST create these in the Vapi Dashboard UI.
+  // Uncomment when Vapi API supports transfer tools.
+  //
+  // {
+  //   type: 'transferCall',
+  //   function: {
+  //     name: 'transfer_to_sales',
+  //     description: 'Transfer the call to Sales Manager when customer wants to buy, rent, get a quote, or needs pricing negotiation.',
+  //   },
+  //   destinations: [
+  //     {
+  //       type: 'number',
+  //       number: process.env.SALES_PHONE_NUMBER || '+1234567890',
+  //       message: 'Transferring you to our Sales Manager now...'
+  //     }
+  //   ]
+  // },
+  // {
+  //   type: 'transferCall',
+  //   function: {
+  //     name: 'transfer_to_service',
+  //     description: 'Transfer the call to Service Department when customer needs repairs, maintenance, or has a broken machine.',
+  //   },
+  //   destinations: [
+  //     {
+  //       type: 'number',
+  //       number: process.env.SERVICE_PHONE_NUMBER || '+1234567890',
+  //       message: 'Connecting you to our Service Desk right now...'
+  //     }
+  //   ]
+  // }
 ];
 
 /**
@@ -134,4 +162,30 @@ export const getToolByName = (name: string): VapiTool | undefined => {
  */
 export const getToolNames = (): string[] => {
   return VAPI_TOOLS.map(tool => tool.function.name);
+};
+
+/**
+ * Phone Number Configuration
+ *
+ * This defines the desired configuration for your Vapi phone numbers.
+ * The sync script will update your phone numbers to match this config.
+ *
+ * NOTE: You need to buy phone numbers in Vapi dashboard first.
+ * This config just updates their settings.
+ */
+export const PHONE_NUMBER_CONFIG = {
+  // Default config applied to ALL phone numbers
+  default: {
+    serverUrl: `${getServerUrl()}/inbound`,
+    serverUrlSecret: process.env.VAPI_SERVER_SECRET || undefined,
+    // CRITICAL: assistantId MUST be null to use dynamic prompts from /inbound
+    // If assistantId is set, Vapi ignores /inbound and uses the static assistant
+    assistantId: null
+  }
+
+  // Optional: Override config for specific phone numbers
+  // '+1234567890': {
+  //   serverUrl: `${getServerUrl()}/inbound`,
+  //   assistantId: 'specific-assistant-id'
+  // }
 };

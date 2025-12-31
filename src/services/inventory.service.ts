@@ -5,7 +5,7 @@ import { InventoryItem } from '../types';
 export class InventoryService {
   /**
    * Search inventory by query string
-   * Matches against model name and category
+   * Matches against model name and category with smart plural handling
    */
   search(query: string): InventoryItem[] {
     if (!query) {
@@ -14,10 +14,27 @@ export class InventoryService {
 
     const normalizedQuery = query.toLowerCase();
 
-    return INVENTORY.filter(item =>
-      item.model.toLowerCase().includes(normalizedQuery) ||
-      item.category.toLowerCase().includes(normalizedQuery)
-    );
+    // Smart matching: handle plurals, synonyms, common variations
+    const queryVariations = [
+      normalizedQuery,
+      normalizedQuery.replace(/s$/, ''),  // Remove trailing 's' (excavators -> excavator)
+      normalizedQuery.replace(/es$/, ''), // Remove trailing 'es' (dozers -> dozer)
+      normalizedQuery.replace(/bulldozer/g, 'dozer'), // bulldozer = dozer
+      normalizedQuery.replace(/loader/g, 'wheel loader'), // common variation
+    ];
+
+    return INVENTORY.filter(item => {
+      const model = item.model.toLowerCase();
+      const category = item.category.toLowerCase();
+
+      // Check if any query variation matches model or category
+      return queryVariations.some(variation =>
+        model.includes(variation) ||
+        category.includes(variation) ||
+        variation.includes(model) ||
+        variation.includes(category)
+      );
+    });
   }
 
   /**

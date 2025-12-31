@@ -30,28 +30,15 @@ export async function handleToolExecution(request: FastifyRequest, reply: Fastif
     }
   }
 
-  console.log(`[ToolExecution] Executing tool: ${functionName}`, { args });
-
   let result = "Tool not found.";
 
   // Route to appropriate tool handler
   if (functionName === 'check_inventory') {
+    console.log(`\n[Tool] check_inventory("${args.query}")`);
     result = handleCheckInventory(args);
-
-    // Log result type
-    let resultType = 'no matches';
-    if (result.includes('I found')) {
-      resultType = 'summary mode (6+ items)';
-    } else if (result.includes('We have')) {
-      resultType = 'full details (2-5 items)';
-    } else if (result.includes('Yes, we have')) {
-      resultType = 'single item';
-    }
-
-    console.log(`[ToolExecution] ${functionName} completed - Query: "${args.query}" -> ${resultType}`);
-    console.log(`[ToolExecution] Response preview: ${result.substring(0, 120)}...`);
+    console.log(`[Tool Result] ${result}\n`);
   } else {
-    console.warn(`[ToolExecution] Unknown tool requested: ${functionName}`);
+    console.warn(`[Tool] Unknown: ${functionName}`);
   }
 
   // Return format required by Vapi
