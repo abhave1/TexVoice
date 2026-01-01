@@ -1,361 +1,148 @@
 # Tex Intel API
 
-Voice AI integration API for Tex Intel heavy equipment rental business, powered by Vapi.
+Voice AI integration API for Tex Intel heavy equipment rental business — integrates with Vapi for voice calls, tools, and analytics.
 
 ## Features
-
-- 🎯 **Customer Recognition** - Personalized greetings for known customers
-- 📦 **Inventory Checking** - Real-time equipment availability via voice
-- 🔧 **Config as Code** - Manage Vapi tools and assistants in version control
-- 📊 **Analytics** - Access call logs and billing programmatically
-- 🧪 **Fully Tested** - 22 tests covering all functionality
-- 🏗️ **Clean Architecture** - Services, Controllers, Routes pattern
+- Customer recognition and personalized greetings
+- Inventory search via tool calls
+- Config-as-code for Vapi tools/assistants
+- Call logging and billing analytics
+- Test suite covering core logic
+- Fastify + TypeScript implementation
 
 ## Quick Start
 
-### 1. Install Dependencies
+1. Install dependencies
 ```bash
-npm install
+npm ci
 ```
 
-### 2. Configure Environment
+2. Configure environment
 ```bash
 cp .env.example .env
-# Edit .env and set:
-# VAPI_API_KEY=sk_live_your_key_here
+# Edit .env and set required values (see Environment Variables below)
 ```
 
-### 3. Start Development Server
+3. Start (dev)
 ```bash
 npm run dev
 ```
 
-### 4. Expose with ngrok (for Vapi webhook testing)
+4. Build & run (production)
 ```bash
-# Terminal 2
+npm run build
+npm run start
+```
+
+5. Expose locally (webhook testing)
+```bash
 npm run tunnel
-# Copy the https URL
+# Copy the HTTPS URL ngrok prints and use it in Vapi webhook settings
 ```
 
-### 5. Configure Vapi
-1. Go to https://dashboard.vapi.ai
-2. Set **Server URL**: `https://your-ngrok-url.ngrok-free.app/inbound`
-3. Or sync tools: `npm run vapi:sync`
-
-## Project Structure
-
-```
-src/
-├── controllers/         # Request/response handling
-│   ├── inbound.controller.ts
-│   └── tools.controller.ts
-├── services/            # Business logic (reusable)
-│   ├── customer.service.ts
-│   ├── inventory.service.ts
-│   └── vapi-client.service.ts
-├── routes/              # HTTP routing (thin layer)
-│   ├── inbound.ts
-│   ├── tools.ts
-│   └── admin.ts
-├── db/                  # Data access
-│   └── mock.ts
-├── config/              # Configuration
-│   └── vapi-config.ts
-├── types/               # TypeScript definitions
-│   └── vapi.types.ts
-└── app.ts               # Application entry point
-
-tests/                   # Test suites
-scripts/                 # CLI utilities
-```
-
-## Architecture
-
-### Hybrid Multi-Layer Pattern
-
-**Routes** → **Controllers** → **Services** → **Data**
-
-- **Routes**: Thin routing layer (just HTTP)
-- **Controllers**: Request/response handling
-- **Services**: Business logic (testable, reusable)
-- **Data**: Database access (currently mock)
-
-### Why This Structure?
-
-✅ **Testable** - Services can be tested without HTTP
-✅ **Reusable** - Logic can be called from anywhere
-✅ **Scalable** - Clear separation of concerns
-✅ **Maintainable** - Easy to find and modify code
-
-## API Endpoints
-
-### Public Endpoints (Vapi Webhooks)
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Health check |
-| `/inbound` | POST | Handle incoming calls |
-| `/tools` | POST | Execute tool functions |
-
-### Admin Endpoints (Your Use)
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/admin/calls` | GET | Fetch call logs |
-| `/admin/calls/:id` | GET | Get specific call |
-| `/admin/billing` | GET | Get cost data |
-| `/admin/tools` | GET | List tools |
-| `/admin/tools/sync` | POST | Sync config to Vapi |
-| `/admin/assistants` | GET | List assistants |
-| `/admin/health` | GET | Check Vapi connection |
-
-See [VAPI_GUIDE.md](./VAPI_GUIDE.md) for detailed API documentation.
-
-## NPM Scripts
-
-### Development
-```bash
-npm run dev          # Start with hot reload
-npm run build        # Compile TypeScript
-npm run start        # Run production build
-npm run clean        # Remove dist folder
-```
-
-### Testing
-```bash
-npm test             # Run all tests
-npm run test:watch   # Watch mode
-npm run test:ui      # Interactive UI
-npm run test:coverage # Generate coverage report
-```
-
-### Vapi Integration
-```bash
-npm run vapi:sync    # Sync tools to Vapi
-npm run vapi:calls   # Fetch last 10 calls
-npm run vapi:calls:20 # Fetch last 20 calls
-```
-
-### Utilities
-```bash
-npm run tunnel       # Start ngrok tunnel
-```
-
-## Configuration
-
-### Environment Variables
-
-```env
-# Server
-NODE_ENV=development
-PORT=3000
-HOST=0.0.0.0
-LOG_LEVEL=info
-
-# Vapi API
-VAPI_API_KEY=sk_live_your_key_here
-
-# Optional
-SERVER_URL=https://your-production-url.com
-```
-
-### Vapi Tools (Code)
-
-Edit `src/config/vapi-config.ts`:
-
-```typescript
-export const VAPI_TOOLS: VapiTool[] = [
-  {
-    type: 'function',
-    function: {
-      name: 'check_inventory',
-      description: 'Check equipment availability',
-      parameters: { ... }
-    },
-    server: {
-      url: `${getServerUrl()}/tools`
-    }
-  }
-];
-```
-
-Then sync: `npm run vapi:sync`
-
-## Testing
-
-Run the test suite:
-
-```bash
-npm test
-```
-
-Output:
-```
-✓ tests/app.test.ts (2 tests)
-✓ tests/inbound.test.ts (7 tests)
-✓ tests/tools.test.ts (13 tests)
-
-Test Files  3 passed (3)
-Tests       22 passed (22)
-```
-
-See [TESTING.md](./TESTING.md) for detailed testing documentation.
-
-## Deployment
-
-### Railway (Recommended)
-
-```bash
-# Install Railway CLI
-npm i -g @railway/cli
-
-# Login and deploy
-railway login
-railway init
-railway up
-
-# Get URL
-railway domain
-```
-
-### Docker
-
-```bash
-# Build
-docker build -t tex-api .
-
-# Run
-docker run -p 3000:3000 --env-file .env tex-api
-```
-
-### Vercel/Other Serverless
-
-See plan file for serverless considerations (latency important for voice!).
-
-## Development Workflow
-
-### Adding a New Tool
-
-1. **Define tool** in `src/config/vapi-config.ts`:
-```typescript
-export const VAPI_TOOLS: VapiTool[] = [
-  // ... existing tools
-  {
-    type: 'function',
-    function: {
-      name: 'book_rental',
-      description: 'Book equipment rental',
-      parameters: {
-        type: 'object',
-        properties: {
-          equipmentId: { type: 'string', description: '...' },
-          startDate: { type: 'string', description: '...' }
-        },
-        required: ['equipmentId', 'startDate']
-      }
-    },
-    server: { url: `${getServerUrl()}/tools` }
-  }
-];
-```
-
-2. **Handle in controller** (`src/controllers/tools.controller.ts`):
-```typescript
-if (functionName === 'book_rental') {
-  result = handleBookRental(args);
-}
-```
-
-3. **Sync to Vapi**:
+6. Sync tools to Vapi
 ```bash
 npm run vapi:sync
 ```
 
-4. **Test**:
+## Project Structure
+- app.ts — application entry and server setup
+- controllers — request/response handling
+  - inbound.controller.ts
+  - tools.controller.ts
+  - admin.controller.ts
+  - client.controller.ts
+- services — business logic
+  - vapi-client.service.ts
+  - database.service.ts
+  - inventory.service.ts
+  - customer.service.ts
+- config
+  - tools-builder.ts
+  - assistant-config.ts
+  - structured-output-id.json
+  - tool-ids.json
+- schema.sql — SQLite schema
+- public — dashboard and static frontend (e.g., client.html, dashboard.css, client.js)
+- tests — Vitest test suites
+- sync-vapi.ts — sync helper for Vapi
+
+## API (select)
+- `GET /api` — health & endpoints
+- `POST /inbound` — Vapi inbound webhook handling
+- `POST /tools` — tool execution endpoint
+- Admin: `/admin/calls`, `/admin/billing`, `/admin/tools`, `/admin/assistants`, `/admin/phone-numbers`, `/admin/health`
+- Dashboard served at `/` (static public)
+
+## NPM Scripts
+- `npm run dev` — run with `tsx` watch (development)
+- `npm run build` — compile TypeScript
+- `npm run start` — run compiled app.js
+- `npm run clean` — remove dist
+- `npm run tunnel` — run ngrok tunnel
+- `npm test` / `npm run test:watch` / `npm run test:ui` / `npm run test:coverage`
+- `npm run vapi:sync` — sync tools/assistants to Vapi
+
+(See package.json for exact versions and scripts.)
+
+## Environment Variables
+Required
+- `VAPI_API_KEY` — Vapi server API key (used by vapi-client.service.ts)
+Recommended
+- `SERVER_URL` — externally reachable server URL used when building tool server callbacks (defaults to `http://localhost:3000`)
+- `PORT` — server port (default 3000)
+- `HOST` — server host (default `0.0.0.0`)
+Optional
+- `NODE_ENV` — `production` / `development`
+- `DATABASE_PATH` — optional path for SQLite DB file (see Database notes)
+
+## Database (important)
+- The app currently uses SQLite by default and creates calls.db in the project root via database.service.ts.
+- Filesystem-backed SQLite is fine for local development and tests (tests use in-memory DB), but most cloud hosts (including Railway) use ephemeral filesystems by default — the DB file can be lost on redeploy/scale.
+Recommendations:
+- Production: migrate to a managed Postgres instance (Railway Postgres plugin) and update code to use Postgres (or a migration layer).
+- Quick deploy on Railway: either mount a Railway persistent disk and set `DATABASE_PATH` to the mounted path (e.g. `/data/calls.db`) or accept ephemeral storage for non-critical data.
+- Optional small change: make SQLite path configurable by `DATABASE_PATH` (you can patch database.service.ts to read `process.env.DATABASE_PATH`).
+
+## Deployment (Railway)
+Minimal steps (UI)
+1. Push your repo to GitHub.
+2. Create a new Railway project → Deploy from GitHub → pick repo & branch.
+3. In Railway Environment variables add:
+   - `VAPI_API_KEY`, `SERVER_URL` (optional), `NODE_ENV=production`
+4. Set Build & Start:
+   - Build Command: `npm ci && npm run build`
+   - Start Command: `npm run start`
+Railway notes:
+- Railway exposes `PORT` automatically; app.ts reads it.
+- If you keep SQLite, either mount a persistent disk and set `DATABASE_PATH` or use Railway Postgres.
+
+Railway CLI quick commands
+```bash
+npm i -g railway
+railway login
+railway init
+railway variables set VAPI_API_KEY=sk_live_xxx SERVER_URL=https://your-domain railway
+railway up
+```
+
+## Testing
+Run all tests:
 ```bash
 npm test
 ```
-
-Done! No dashboard needed.
-
-### Adding a New Service
-
-1. Create `src/services/my-service.service.ts`
-2. Export service class and singleton
-3. Use in controllers
-4. Write tests
-
-## Monitoring & Analytics
-
-### View Call Logs
-
-```bash
-# CLI
-npm run vapi:calls
-
-# API
-curl http://localhost:3000/admin/calls
-```
-
-### Track Costs
-
-```bash
-# Get billing data
-curl http://localhost:3000/admin/billing
-
-# Filter by date
-curl "http://localhost:3000/admin/billing?startDate=2025-12-01&endDate=2025-12-31"
-```
-
-### Custom Dashboards
-
-Use the admin API to build custom dashboards:
-- `/admin/calls` - Call history
-- `/admin/billing` - Cost tracking
-- `/admin/tools` - Tool usage stats
+Tests live under tests and initialize the DB in-memory for isolation.
 
 ## Troubleshooting
+- Server won't start: ensure .env exists and `VAPI_API_KEY` is set; run `npm ci` then `npm run build` then `npm run start`.
+- Vapi issues: confirm `VAPI_API_KEY`, and webhook URL (ngrok or your deployed domain) is correct.
+- Data disappearing on cloud deploy: check DB strategy (use persistent disk or Postgres).
 
-### Server won't start
-- Check `.env` exists with valid `VAPI_API_KEY`
-- Ensure port 3000 is not in use
-- Run `npm install` first
+## Contributing / Extending
+- Add new tools in tools-builder.ts and sync via `npm run vapi:sync`.
+- Add services in services and expose them through controllers in controllers.
+- Write tests in tests and run `npm test`.
 
-### Tests failing
-- Run `npm run clean && npm run build`
-- Check mock data in `src/db/mock.ts`
-
-### Vapi integration not working
-- Verify `VAPI_API_KEY` is set correctly
-- Check ngrok is running: `npm run tunnel`
-- Test connection: `curl http://localhost:3000/admin/health`
-
-### Customer not recognized
-- Phone numbers must be E.164 format: `+1XXXXXXXXXX`
-- Check customer exists in `src/db/mock.ts`
-- View server logs for recognition messages
-
-## Documentation
-
-- [VAPI_GUIDE.md](./VAPI_GUIDE.md) - Complete Vapi integration guide
-- [TESTING.md](./TESTING.md) - Testing documentation with examples
-
-## Tech Stack
-
-- **Runtime**: Node.js 20 LTS
-- **Framework**: Fastify 5.x
-- **Language**: TypeScript (strict mode)
-- **Testing**: Vitest
-- **Voice AI**: Vapi + Groq (llama-3.1-8b-instant)
-- **Deployment**: Docker + Railway
-
-## License
-
-ISC
-
-## Support
-
-For issues or questions:
-- Check existing documentation
-- Review test files for examples
-- Consult Vapi docs: https://docs.vapi.ai
+## Notes & TODOs
+- Optional: patch database.service.ts to respect `DATABASE_PATH` for easier cloud deployment.
+- Remove or create any missing reference docs previously mentioned in the old README (e.g., VAPI_GUIDE.md, TESTING.md) if you want to keep them referenced.
