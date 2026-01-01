@@ -5,6 +5,7 @@
   "main": "dist/app.js",
   "scripts": {
     "build": "tsc",
+    "postbuild": "mkdir -p dist/db && cp src/db/schema.sql dist/db/schema.sql && cp -R public dist/public",
     "start": "node dist/app.js",
     "dev": "tsx --watch src/app.ts",
     "clean": "rm -rf dist",
