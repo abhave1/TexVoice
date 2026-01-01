@@ -41,56 +41,6 @@ export async function inboundRoutes(fastify: FastifyInstance) {
             }
           }
         }
-      },
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            assistant: {
-              type: 'object',
-              properties: {
-                model: {
-                  type: 'object',
-                  properties: {
-                    provider: { type: 'string' },
-                    model: { type: 'string' },
-                    temperature: { type: 'number' },
-                    toolIds: {
-                      type: 'array',
-                      items: { type: 'string' }
-                    },
-                    messages: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          role: { type: 'string' },
-                          content: { type: 'string' }
-                        },
-                        required: ['role', 'content']
-                      }
-                    }
-                  },
-                  required: ['provider', 'model', 'messages']
-                },
-                voice: {
-                  type: 'object',
-                  properties: {
-                    provider: { type: 'string' },
-                    voiceId: { type: 'string' },
-                    stability: { type: 'number' },
-                    similarityBoost: { type: 'number' },
-                    optimizeStreamingLatency: { type: 'number' },
-                    useSpeakerBoost: { type: 'boolean' }
-                  }
-                },
-                firstMessage: { type: 'string' }
-              },
-              required: ['model', 'firstMessage']
-            }
-          },
-          required: ['assistant']
-        }
       }
     }
   }, handleInboundCall);

@@ -20,15 +20,13 @@ export async function adminRoutes(fastify: FastifyInstance) {
 
   // Tools management
   fastify.get('/admin/tools', controller.getTools.bind(controller));
-  fastify.post('/admin/tools/sync', controller.syncTools.bind(controller));
-
-  // Assistants management
-  fastify.get('/admin/assistants', controller.getAssistants.bind(controller));
-  fastify.patch('/admin/assistants/:assistantId', controller.updateAssistant.bind(controller));
-
-  // Phone numbers
-  fastify.get('/admin/phone-numbers', controller.getPhoneNumbers.bind(controller));
 
   // Health check
   fastify.get('/admin/health', controller.getHealth.bind(controller));
+
+  // Local database endpoints (with structured data)
+  fastify.get('/admin/db/calls', controller.getLocalCalls.bind(controller));
+  fastify.get('/admin/db/calls/:callId', controller.getLocalCall.bind(controller));
+  fastify.get('/admin/db/stats/daily', controller.getDailyStats.bind(controller));
+  fastify.get('/admin/db/stats/intents', controller.getIntentStats.bind(controller));
 }

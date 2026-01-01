@@ -2,9 +2,14 @@
 // TypeScript types for Vapi API
 
 /**
- * Vapi Tool/Function Definition
+ * Vapi Tool Definition (Function or TransferCall)
  */
-export interface VapiTool {
+export type VapiTool = VapiFunctionTool | VapiTransferCallTool;
+
+/**
+ * Function Tool (custom server-side logic)
+ */
+export interface VapiFunctionTool {
   id?: string;
   type: 'function';
   function: {
@@ -15,6 +20,7 @@ export interface VapiTool {
       properties: Record<string, {
         type: string;
         description: string;
+        enum?: string[];
       }>;
       required?: string[];
     };
@@ -25,6 +31,48 @@ export interface VapiTool {
     url: string;
     secret?: string;
   };
+}
+
+/**
+ * TransferCall Tool (VAPI-handled call transfers)
+ */
+export interface VapiTransferCallTool {
+  id?: string;
+  type: 'transferCall';
+  function: {
+    name: string;
+    description?: string;
+    parameters?: {
+      type: 'object';
+      properties: Record<string, {
+        type: string;
+        description: string;
+        enum?: string[];
+      }>;
+      required?: string[];
+    };
+  };
+  destinations: Array<{
+    type: 'number' | 'sip';
+    number?: string;
+    sipUri?: string;
+    description?: string;
+    transferPlan?: {
+      mode: 'warm-transfer-with-summary' | 'rolling-transfer' | 'warm-transfer-experimental';
+      summaryPlan?: {
+        enabled: boolean;
+        messages?: Array<{
+          role: 'system' | 'user';
+          content: string;
+        }>;
+      };
+      timeout?: number;
+    };
+  }>;
+  messages?: Array<{
+    type: 'request-start' | 'request-complete' | 'request-failed';
+    content: string;
+  }>;
 }
 
 /**
@@ -41,7 +89,7 @@ export interface VapiAssistant {
     messages?: Array<{ role: string; content: string }>;
   };
   voice?: {
-    provider: '11labs' | 'playht' | 'rime-ai' | 'deepgram' | 'openai';
+    provider: '11labs' | 'playht' | 'rime-ai' | 'deepgram' | 'openai' | 'vapi';
     voiceId: string;
   };
   firstMessage?: string;
@@ -67,6 +115,33 @@ export interface VapiAssistant {
   backchannelingEnabled?: boolean;
   backgroundDenoisingEnabled?: boolean;
   modelOutputInMessagesEnabled?: boolean;
+  analysisPlan?: {
+    summaryPlan?: {
+      enabled: boolean;
+      messages?: Array<{
+        role: 'system' | 'user';
+        content: string;
+      }>;
+    };
+    successEvaluationPlan?: {
+      enabled: boolean;
+      rubric?: 'NumericScale' | 'DescriptiveScale' | 'Checklist' | 'Matrix' | 'PercentageScale' | 'LikertScale' | 'AutomaticRubric' | 'PassFail';
+      messages?: Array<{
+        role: 'system' | 'user';
+        content: string;
+      }>;
+    };
+    // Legacy approach for structured data extraction
+    structuredDataPrompt?: string;
+    structuredDataSchema?: {
+      type: 'object';
+      properties: Record<string, any>;
+      required?: string[];
+    };
+  };
+  artifactPlan?: {
+    structuredOutputIds?: string[];
+  };
 }
 
 /**
@@ -158,6 +233,8 @@ export interface VapiQueryParams {
   updatedAtLt?: string;
   updatedAtGe?: string;
   updatedAtLe?: string;
+  assistantId?: string;
+  phoneNumberIdAny?: string;
 }
 
 /**

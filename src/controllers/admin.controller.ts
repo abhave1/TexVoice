@@ -1,24 +1,11 @@
-// src/controllers/admin.controller.ts
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { vapiClient } from '../services/vapi-client.service';
-import { VAPI_TOOLS } from '../config/vapi-config';
+import { databaseService } from '../services/database.service';
 
-/**
- * Admin Controller
- * Handles all admin endpoints for Vapi management and analytics
- */
 export class AdminController {
-
-  // ==================== CALL LOGS ====================
-
-  /**
-   * GET /admin/calls
-   * Fetch call logs from Vapi
-   */
   async getCalls(request: FastifyRequest, reply: FastifyReply) {
     try {
       const { limit = '50', createdAtGt, createdAtLt } = request.query as any;
-      console.log(`[Admin] Fetching calls - limit: ${limit}`);
 
       const calls = await vapiClient.listCalls({
         limit: parseInt(limit),
@@ -26,10 +13,8 @@ export class AdminController {
         ...(createdAtLt && { createdAtLt })
       });
 
-      console.log(`[Admin] Retrieved ${calls.results?.length || 0} calls`);
       return reply.send(calls);
     } catch (error: any) {
-      console.error('[Admin] Failed to fetch calls:', error.message);
       return reply.status(500).send({ error: error.message });
     }
   }
@@ -41,14 +26,11 @@ export class AdminController {
   async getCall(request: FastifyRequest, reply: FastifyReply) {
     try {
       const { callId } = request.params as { callId: string };
-      console.log(`[Admin] Fetching call details for: ${callId}`);
 
       const call = await vapiClient.getCall(callId);
-      console.log(`[Admin] Retrieved call ${callId} - Status: ${call.status}, Duration: ${call.endedAt ? 'ended' : 'active'}`);
 
       return reply.send(call);
     } catch (error: any) {
-      console.error(`[Admin] Failed to fetch call:`, error.message);
       return reply.status(500).send({ error: error.message });
     }
   }
@@ -64,12 +46,11 @@ export class AdminController {
 
       return reply.send({ callId, transcript });
     } catch (error: any) {
-      console.error('[Admin] Failed to fetch transcript:', error.message);
       return reply.status(500).send({ error: error.message });
     }
   }
 
-  // ==================== BILLING ====================
+  // Billing Routes 
 
   /**
    * GET /admin/billing
@@ -99,12 +80,11 @@ export class AdminController {
         }))
       });
     } catch (error: any) {
-      console.error('[Admin] Failed to fetch billing:', error.message);
       return reply.status(500).send({ error: error.message });
     }
   }
 
-  // ==================== TOOLS MANAGEMENT ====================
+  // Tools Routes 
 
   /**
    * GET /admin/tools
@@ -115,103 +95,10 @@ export class AdminController {
       const tools = await vapiClient.listTools();
       return reply.send(tools);
     } catch (error: any) {
-      console.error('[Admin] Failed to fetch tools:', error.message);
       return reply.status(500).send({ error: error.message });
     }
   }
 
-  /**
-   * POST /admin/tools/sync
-   * Sync local tool definitions to Vapi
-   */
-  async syncTools(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      console.log(`[Admin] Starting tool sync - ${VAPI_TOOLS.length} tools to sync`);
-      const results = [];
-
-      // Fetch existing tools once (not in loop!)
-      const existingTools = await vapiClient.listTools();
-      console.log(`[Admin] Found ${existingTools.results.length} existing tools in Vapi`);
-
-      for (const tool of VAPI_TOOLS) {
-        const existing = existingTools.results.find(
-          t => t.function.name === tool.function.name
-        );
-
-        if (existing && existing.id) {
-          // Update existing tool
-          console.log(`[Admin] Updating tool: ${tool.function.name}`);
-          const updated = await vapiClient.updateTool(existing.id, tool);
-          results.push({ action: 'updated', tool: updated });
-        } else {
-          // Create new tool
-          console.log(`[Admin] Creating new tool: ${tool.function.name}`);
-          const created = await vapiClient.createTool(tool);
-          results.push({ action: 'created', tool: created });
-        }
-      }
-
-      console.log(`[Admin] Tool sync complete - Created: ${results.filter(r => r.action === 'created').length}, Updated: ${results.filter(r => r.action === 'updated').length}`);
-      return reply.send({
-        success: true,
-        synced: results.length,
-        results
-      });
-    } catch (error: any) {
-      console.error('[Admin] Tool sync failed:', error.message);
-      return reply.status(500).send({ error: error.message });
-    }
-  }
-
-  // ==================== ASSISTANTS MANAGEMENT ====================
-
-  /**
-   * GET /admin/assistants
-   * List all assistants
-   */
-  async getAssistants(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const assistants = await vapiClient.listAssistants();
-      return reply.send(assistants);
-    } catch (error: any) {
-      console.error('[Admin] Failed to fetch assistants:', error.message);
-      return reply.status(500).send({ error: error.message });
-    }
-  }
-
-  /**
-   * PATCH /admin/assistants/:assistantId
-   * Update assistant configuration
-   */
-  async updateAssistant(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const { assistantId } = request.params as { assistantId: string };
-      const updates = request.body as any;
-
-      const updated = await vapiClient.updateAssistant(assistantId, updates);
-
-      return reply.send(updated);
-    } catch (error: any) {
-      console.error('[Admin] Failed to update assistant:', error.message);
-      return reply.status(500).send({ error: error.message });
-    }
-  }
-
-  // ==================== PHONE NUMBERS ====================
-
-  /**
-   * GET /admin/phone-numbers
-   * List all phone numbers
-   */
-  async getPhoneNumbers(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const phoneNumbers = await vapiClient.listPhoneNumbers();
-      return reply.send(phoneNumbers);
-    } catch (error: any) {
-      console.error('[Admin] Failed to fetch phone numbers:', error.message);
-      return reply.status(500).send({ error: error.message });
-    }
-  }
 
   // ==================== HEALTH CHECK ====================
 
@@ -236,6 +123,84 @@ export class AdminController {
         error: error.message,
         timestamp: new Date().toISOString()
       });
+    }
+  }
+
+  // ==================== LOCAL DATABASE ENDPOINTS ====================
+
+  /**
+   * GET /admin/db/calls
+   * Get calls from local database (with structured data)
+   */
+  async getLocalCalls(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const { limit = '50' } = request.query as any;
+      const calls = await databaseService.getRecentCalls(parseInt(limit));
+
+      return reply.send({
+        count: calls.length,
+        calls
+      });
+    } catch (error: any) {
+      console.error('[Admin] Failed to fetch local calls:', error.message);
+      return reply.status(500).send({ error: error.message });
+    }
+  }
+
+  /**
+   * GET /admin/db/calls/:callId
+   * Get specific call from local database
+   */
+  async getLocalCall(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const { callId } = request.params as { callId: string };
+      const call = await databaseService.getCall(callId);
+
+      if (!call) {
+        return reply.status(404).send({ error: 'Call not found in local database' });
+      }
+
+      return reply.send(call);
+    } catch (error: any) {
+      console.error('[Admin] Failed to fetch local call:', error.message);
+      return reply.status(500).send({ error: error.message });
+    }
+  }
+
+  /**
+   * GET /admin/db/stats/daily
+   * Get daily statistics from local database
+   */
+  async getDailyStats(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const { days = '7' } = request.query as any;
+      const stats = await databaseService.getDailyStats(parseInt(days));
+
+      return reply.send({
+        days: parseInt(days),
+        stats
+      });
+    } catch (error: any) {
+      console.error('[Admin] Failed to fetch daily stats:', error.message);
+      return reply.status(500).send({ error: error.message });
+    }
+  }
+
+  /**
+   * GET /admin/db/stats/intents
+   * Get intent breakdown analytics
+   */
+  async getIntentStats(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const breakdown = await databaseService.getIntentBreakdown();
+
+      return reply.send({
+        count: breakdown.length,
+        intents: breakdown
+      });
+    } catch (error: any) {
+      console.error('[Admin] Failed to fetch intent stats:', error.message);
+      return reply.status(500).send({ error: error.message });
     }
   }
 }

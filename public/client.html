@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Configuration - Tex Intel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dashboard.css">
+    <style>
+        .form-section {
+            background: var(--tex-white);
+            border: 2px dashed rgba(0, 0, 0, 0.2);
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+        .form-section h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--tex-black);
+            letter-spacing: -0.02em;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            color: var(--tex-black);
+        }
+        .form-group input[type="text"],
+        .form-group input[type="tel"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            background: var(--tex-white);
+            font-size: 1rem;
+            font-family: 'Cairo', sans-serif;
+            transition: border-color 0.2s ease;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--tex-blue);
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .form-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1rem;
+            text-transform: none;
+            letter-spacing: normal;
+            cursor: pointer;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .help-text {
+            font-size: 0.875rem;
+            color: rgba(0, 0, 0, 0.6);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .disabled-section {
+            opacity: 0.5;
+            pointer-events: none;
+            position: relative;
+        }
+        .coming-soon-badge {
+            position: absolute;
+            top: 32px;
+            right: 32px;
+            background: #FEF3C7;
+            color: #92400E;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .success-message,
+        .error-message {
+            padding: 16px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: none;
+        }
+        .success-message {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        .error-message {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+        .sync-progress {
+            background: var(--tex-white);
+            border: 2px dashed var(--tex-blue);
+            padding: 24px;
+            margin-top: 20px;
+            display: none;
+        }
+        .sync-progress h4 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .sync-step {
+            padding: 8px 0;
+            font-weight: 500;
+        }
+        .sync-step.success {
+            color: #065F46;
+        }
+        .sync-step.error {
+            color: #991B1B;
+        }
+        .sync-step.pending {
+            color: rgba(0, 0, 0, 0.5);
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+        .or-divider {
+            text-align: center;
+            margin: 12px 0;
+            color: rgba(0, 0, 0, 0.4);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Calls Table */
+        .calls-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        .calls-table th {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.2);
+        }
+        .calls-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            font-weight: 500;
+        }
+        .calls-table tr:hover {
+            background: rgba(0, 0, 0, 0.02);
+            cursor: pointer;
+        }
+        .call-status {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .call-status.ended {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        .call-status.failed {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: var(--tex-white);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+        }
+        .modal-header {
+            padding: 24px;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover {
+            color: var(--tex-blue);
+        }
+        .modal-body {
+            padding: 24px;
+        }
+        .detail-section {
+            margin-bottom: 24px;
+        }
+        .detail-section h4 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--tex-black);
+        }
+        .detail-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .detail-label {
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .detail-value {
+            font-weight: 500;
+        }
+        .transcript-text {
+            background: rgba(0, 0, 0, 0.03);
+            padding: 16px;
+            font-family: monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <header>
+            <div class="header-content">
+                <div class="brand-row">
+                    <h1>Tex Intel</h1>
+                </div>
+                <p class="subtitle">Client Configuration Portal</p>
+                <div class="header-actions">
+                    <a href="/" class="btn btn-secondary">View Dashboard</a>
+                    <button onclick="logout()" class="btn btn-secondary">Logout</button>
+                </div>
+            </div>
+            <div class="divider-stack">
+                <div class="bar bar-1"></div>
+                <div class="bar bar-2"></div>
+                <div class="bar bar-3"></div>
+                <div class="bar bar-4"></div>
+                <div class="header-banner">
+                    <span>Configure Your Voice AI Assistant</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="success-message" id="successMessage"></div>
+        <div class="error-message" id="errorMessage"></div>
+
+        <form id="configForm">
+            <!-- Basic Information -->
+            <section class="form-section">
+                <h3>Basic Information</h3>
+                <div class="form-group">
+                    <label for="clientName">Client Name *</label>
+                    <input type="text" id="clientName" name="clientName" required>
+                    <div class="help-text">The name of your business or organization</div>
+                </div>
+                <div class="form-group">
+                    <label for="company">Company</label>
+                    <input type="text" id="company" name="company">
+                    <div class="help-text">Optional company name for records</div>
+                </div>
+            </section>
+
+            <!-- Phone Number Configuration -->
+            <section class="form-section">
+                <h3>Phone Number</h3>
+                <div class="form-group">
+                    <label for="vapiPhoneSelect">Select Vapi Phone Number</label>
+                    <select id="vapiPhoneSelect" name="vapiPhoneSelect">
+                        <option value="">Loading phone numbers...</option>
+                    </select>
+                    <div class="help-text">Choose from your available Vapi phone numbers</div>
+                </div>
+                <div class="or-divider">OR</div>
+                <div class="form-group">
+                    <label for="manualPhone">Enter Phone Number Manually</label>
+                    <input type="tel" id="manualPhone" name="manualPhone" placeholder="+14159410790">
+                    <div class="help-text">Enter the full phone number with country code</div>
+                </div>
+            </section>
+
+            <!-- Tools Configuration -->
+            <section class="form-section">
+                <h3>Available Tools</h3>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="enableInventory" name="enableInventory" checked>
+                        Enable Inventory Search
+                    </label>
+                    <div class="help-text" style="margin-left: 30px;">Allow the AI to search your equipment inventory during calls</div>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="enableTransfers" name="enableTransfers" checked>
+                        Enable Call Transfers
+                    </label>
+                    <div class="help-text" style="margin-left: 30px;">Allow the AI to transfer calls to your team</div>
+                </div>
+            </section>
+
+            <!-- Transfer Phone Numbers -->
+            <section class="form-section">
+                <h3>Transfer Destinations</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="salesPhone">Sales Department</label>
+                        <input type="tel" id="salesPhone" name="salesPhone" placeholder="+1234567890">
+                    </div>
+                    <div class="form-group">
+                        <label for="servicePhone">Service Department</label>
+                        <input type="tel" id="servicePhone" name="servicePhone" placeholder="+1234567890">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="partsPhone">Parts Department</label>
+                    <input type="tel" id="partsPhone" name="partsPhone" placeholder="+1234567890">
+                </div>
+                <div class="help-text">Phone numbers where calls can be transferred</div>
+            </section>
+
+            <!-- Assistant Customization -->
+            <section class="form-section">
+                <h3>Assistant Customization</h3>
+                <div class="form-group">
+                    <label for="firstMessage">First Message Template</label>
+                    <textarea id="firstMessage" name="firstMessage" placeholder="Thanks for calling [Your Company]. How can I help you?"></textarea>
+                    <div class="help-text">The greeting message when someone calls</div>
+                </div>
+                <div class="form-group">
+                    <label for="customPrompt">Custom Instructions</label>
+                    <textarea id="customPrompt" name="customPrompt" placeholder="Additional instructions for the AI assistant..."></textarea>
+                    <div class="help-text">Optional custom instructions to add to the assistant's behavior</div>
+                </div>
+            </section>
+
+            <!-- Database Connection (Disabled for MVP) -->
+            <section class="form-section disabled-section">
+                <div class="coming-soon-badge">Coming Soon</div>
+                <h3>Database Connection</h3>
+                <div class="form-group">
+                    <label for="dbType">Database Type</label>
+                    <select id="dbType" name="dbType" disabled>
+                        <option value="sqlite">SQLite (Current)</option>
+                        <option value="postgres">PostgreSQL</option>
+                        <option value="mysql">MySQL</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dbConnection">Connection String</label>
+                    <input type="text" id="dbConnection" name="dbConnection" disabled placeholder="Database connection details">
+                </div>
+                <div class="help-text">Custom database connectors will be available in a future update</div>
+            </section>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Save Configuration</button>
+                <button type="button" onclick="syncNow()" class="btn btn-secondary">Save & Sync with Vapi</button>
+            </div>
+        </form>
+
+        <!-- Sync Progress -->
+        <div class="sync-progress" id="syncProgress">
+            <h4>Syncing with Vapi...</h4>
+            <div id="syncSteps"></div>
+        </div>
+
+        <!-- Recent Calls -->
+        <section class="form-section" style="margin-top: 40px;">
+            <h3>Recent Calls</h3>
+            <div style="margin-bottom: 20px;">
+                <button onclick="loadCalls()" class="btn btn-secondary">Refresh Calls</button>
+            </div>
+            <div id="callsContainer">
+                <p style="color: rgba(0, 0, 0, 0.6);">Click "Refresh Calls" to load your recent calls</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Call Details Modal -->
+    <div id="callModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalCallId">Call Details</h3>
+                <button class="modal-close" onclick="closeCallModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Call details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Tex Intel API | Powered by Vapi</p>
+    </footer>
+
+    <script src="/client.js"></script>
+</body>
+</html>

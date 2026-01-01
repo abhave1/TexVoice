@@ -13,10 +13,12 @@ export interface VapiPayload {
  */
 export type VapiMessage =
   | AssistantRequestMessage
+  | AssistantStartedMessage
   | StatusUpdateMessage
   | ConversationUpdateMessage
   | EndOfCallReportMessage
-  | ToolCallsMessage;
+  | ToolCallsMessage
+  | SpeechUpdateMessage;
 
 /**
  * Initial call - VAPI asking for assistant configuration
@@ -31,6 +33,16 @@ export interface AssistantRequestMessage {
     customer?: {
       number: string;
     };
+  };
+}
+
+/**
+ * Assistant started notification
+ */
+export interface AssistantStartedMessage {
+  type: 'assistant.started';
+  call?: {
+    id: string;
   };
 }
 
@@ -61,6 +73,19 @@ export interface ConversationUpdateMessage {
     name?: string;
     time: number;
   }>;
+  call?: {
+    id: string;
+  };
+}
+
+/**
+ * Real-time speech transcription updates
+ */
+export interface SpeechUpdateMessage {
+  type: 'speech-update';
+  role: 'assistant' | 'user';
+  transcript?: string;
+  transcriptType?: 'partial' | 'final';
   call?: {
     id: string;
   };
@@ -150,4 +175,16 @@ export interface InventoryItem {
   condition?: string;
   year?: number;
   specs?: string;
+}
+
+export interface ClientConfig {
+  id: string;
+  name: string;
+  phone_numbers: string[];  // VAPI phone numbers owned by this client
+  transfer_destinations: {
+    sales: string;
+    service: string;
+    parts: string;
+  };
+  greeting?: string;
 }

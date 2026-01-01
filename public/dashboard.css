@@ -501,3 +501,97 @@ footer {
         font-size: 1.5rem;
     }
 }
+
+/* ==================== Database View Styles ==================== */
+.call-card {
+    background: var(--tex-white);
+    border: 2px dashed rgba(0, 0, 0, 0.2);
+    padding: 32px;
+    margin: 20px 0;
+    transition: all 0.2s ease;
+}
+
+.call-card:hover {
+    border-color: var(--tex-black);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.call-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 2px dashed rgba(0, 0, 0, 0.2);
+}
+
+.structured-data-section {
+    margin: 20px 0;
+    padding: 20px 0;
+    border-bottom: 2px dashed rgba(0, 0, 0, 0.1);
+}
+
+.structured-data-section:last-child {
+    border-bottom: none;
+}
+
+.structured-data-section h4 {
+    margin: 0 0 16px 0;
+    color: var(--tex-black);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    font-family: 'Cairo', sans-serif;
+}
+
+.data-row {
+    display: flex;
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.05);
+}
+
+.data-row:last-child {
+    border-bottom: none;
+}
+
+.data-label {
+    font-weight: 700;
+    min-width: 180px;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: 'Cairo', sans-serif;
+}
+
+.data-value {
+    color: var(--tex-black);
+    font-weight: 500;
+    font-family: 'Cairo', sans-serif;
+}
+
+.badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 8px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.badge-sales { background: #DBEAFE; color: var(--tex-blue); }
+.badge-rental { background: #DBEAFE; color: var(--tex-blue); }
+.badge-service { background: #FEF3C7; color: #92400E; }
+.badge-parts { background: #F3E5F5; color: #7B1FA2; }
+.badge-billing { background: #EDE7F6; color: #5E35B1; }
+.badge-general { background: var(--tex-gray); color: rgba(0, 0, 0, 0.6); }
+.badge-other { background: var(--tex-gray); color: rgba(0, 0, 0, 0.6); }
+
+.badge-low { background: var(--tex-gray); color: rgba(0, 0, 0, 0.6); }
+.badge-medium { background: #FEF3C7; color: #92400E; }
+.badge-high { background: #FEE2E2; color: #991B1B; }
+.badge-critical { background: var(--tex-red); color: var(--tex-white); }

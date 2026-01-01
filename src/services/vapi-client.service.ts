@@ -247,6 +247,64 @@ export class VapiClient {
     });
   }
 
+  // ==================== STRUCTURED OUTPUTS ====================
+
+  /**
+   * List all structured outputs
+   */
+  async listStructuredOutputs(params?: VapiQueryParams): Promise<VapiListResponse<any>> {
+    const query = new URLSearchParams(params as any).toString();
+    const response = await this.request<any[] | VapiListResponse<any>>(
+      `/structured-output${query ? `?${query}` : ''}`
+    );
+
+    // Vapi returns a direct array, so wrap it in our standard response format
+    if (Array.isArray(response)) {
+      return {
+        results: response,
+        count: response.length
+      };
+    }
+
+    return response;
+  }
+
+  /**
+   * Get structured output by ID
+   */
+  async getStructuredOutput(structuredOutputId: string): Promise<any> {
+    return this.request<any>(`/structured-output/${structuredOutputId}`);
+  }
+
+  /**
+   * Create a new structured output
+   */
+  async createStructuredOutput(structuredOutput: any): Promise<any> {
+    return this.request<any>('/structured-output', {
+      method: 'POST',
+      body: JSON.stringify(structuredOutput)
+    });
+  }
+
+  /**
+   * Update existing structured output
+   */
+  async updateStructuredOutput(structuredOutputId: string, structuredOutput: any): Promise<any> {
+    return this.request<any>(`/structured-output/${structuredOutputId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(structuredOutput)
+    });
+  }
+
+  /**
+   * Delete a structured output
+   */
+  async deleteStructuredOutput(structuredOutputId: string): Promise<void> {
+    await this.request<void>(`/structured-output/${structuredOutputId}`, {
+      method: 'DELETE'
+    });
+  }
+
   // ==================== ANALYTICS ====================
 
   /**

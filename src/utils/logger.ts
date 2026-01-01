@@ -1,9 +1,19 @@
 // src/utils/logger.ts
 import { FastifyBaseLogger } from 'fastify';
+import fs from 'fs';
+import path from 'path';
+
+const LOGS_DIR = path.join(process.cwd(), 'logs');
+
+// Ensure logs directory exists
+if (!fs.existsSync(LOGS_DIR)) {
+  fs.mkdirSync(LOGS_DIR, { recursive: true });
+}
 
 /**
  * Structured logger utility
  * Provides consistent logging format across the application
+ * Writes to both console and log files
  */
 export class Logger {
   private logger?: FastifyBaseLogger;
@@ -122,7 +132,88 @@ export class Logger {
       console.debug(`[DEBUG] [${event}] ${message}`, metadata || '');
     }
   }
+
+  /**
+   * Write to call-specific log file
+   */
+  private writeToFile(callId: string, message: string) {
+    try {
+      const logFile = path.join(LOGS_DIR, `${callId}.log`);
+      const timestamp = new Date().toISOString();
+      fs.appendFileSync(logFile, `[${timestamp}] ${message}\n`, 'utf8');
+    } catch (error) {
+      console.error('Failed to write to log file:', error);
+    }
+  }
+
+  /**
+   * Save JSON data to file for a specific call
+   */
+  saveJSON(callId: string, filename: string, data: any) {
+    try {
+      const jsonFile = path.join(LOGS_DIR, `${callId}-${filename}.json`);
+      fs.writeFileSync(jsonFile, JSON.stringify(data, null, 2), 'utf8');
+      console.log(`Saved ${filename} to logs/${callId}-${filename}.json`);
+    } catch (error) {
+      console.error('Failed to save JSON file:', error);
+    }
+  }
 }
 
 // Export singleton instance
 export const logger = new Logger();
+
+/**
+ * Create a call-specific logger
+ */
+export function createCallLogger(callId: string) {
+  const logFile = path.join(LOGS_DIR, `${callId}.log`);
+
+  const write = (message: string) => {
+    console.log(message);
+    try {
+      const timestamp = new Date().toISOString();
+      fs.appendFileSync(logFile, `[${timestamp}] ${message}\n`, 'utf8');
+    } catch (error) {
+      console.error('Failed to write to log file:', error);
+    }
+  };
+
+  const saveJSON = (filename: string, data: any) => {
+    try {
+      const jsonFile = path.join(LOGS_DIR, `${callId}-${filename}.json`);
+      fs.writeFileSync(jsonFile, JSON.stringify(data, null, 2), 'utf8');
+      console.log(`Saved to logs/${callId}-${filename}.json`);
+    } catch (error) {
+      console.error('Failed to save JSON file:', error);
+    }
+  };
+
+  return { log: write, json: saveJSON };
+}
+
+/**
+ * Write debug logs to a single debug.log file
+ */
+export function debugLog(section: string, data: any): void {
+  const debugFile = path.join(LOGS_DIR, 'debug.log');
+  const timestamp = new Date().toISOString();
+  const separator = '━'.repeat(80);
+
+  const logEntry = `
+${separator}
+[${timestamp}] ${section}
+${separator}
+${typeof data === 'string' ? data : JSON.stringify(data, null, 2)}
+${separator}
+
+`;
+
+  try {
+    fs.appendFileSync(debugFile, logEntry, 'utf8');
+    console.log(`${section}`);
+  } catch (error) {
+    console.error('Failed to write debug log:', error);
+  }
+}
+

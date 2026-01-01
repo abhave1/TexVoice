@@ -12,6 +12,8 @@ import { readFileSync } from 'fs';
 import { inboundRoutes } from './routes/inbound';
 import { toolRoutes } from './routes/tools';
 import { adminRoutes } from './routes/admin';
+import { clientRoutes } from './routes/client';
+import { databaseService } from './services/database.service';
 
 // Initialize Fastify with minimal logging
 const fastify = Fastify({
@@ -72,6 +74,7 @@ fastify.register(staticFiles, {
 fastify.register(inboundRoutes);
 fastify.register(toolRoutes);
 fastify.register(adminRoutes);
+fastify.register(clientRoutes, { prefix: '/client' });
 
 // API health check
 fastify.get('/api', {
@@ -112,6 +115,8 @@ fastify.get('/api', {
 
 // Graceful shutdown handler
 const closeGracefully = async (signal: string) => {
+  console.log(`\n${signal} received. Closing gracefully...`);
+  await databaseService.close();
   await fastify.close();
   process.exit(0);
 };
@@ -122,6 +127,10 @@ process.on('SIGTERM', () => closeGracefully('SIGTERM'));
 // Start server
 const start = async () => {
   try {
+    // Initialize database first
+    await databaseService.init();
+
+    // Start server
     const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
     const host = process.env.HOST || '0.0.0.0';
     await fastify.listen({ port, host });
