@@ -6,7 +6,8 @@ import {
   saveClientConfig,
   syncClientConfig,
   getVapiPhoneNumbers,
-  getClientCalls
+  getClientCalls,
+  getClientCallbacks
 } from '../controllers/client.controller';
 
 export async function clientRoutes(fastify: FastifyInstance) {
@@ -27,4 +28,7 @@ export async function clientRoutes(fastify: FastifyInstance) {
 
   // Get calls for this client (authenticated)
   fastify.get('/calls', getClientCalls);
+
+  // Get callbacks for this client (authenticated)
+  fastify.get('/callbacks', getClientCallbacks);
 }

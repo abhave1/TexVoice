@@ -19,6 +19,7 @@ const authHeaders = {
 document.addEventListener('DOMContentLoaded', async () => {
     await loadConfig();
     await loadPhoneNumbers();
+    await loadCallbacks();   // <-- load callbacks for this client
 });
 
 /**
@@ -577,3 +578,54 @@ window.onclick = function(event) {
         closeCallModal();
     }
 };
+
+/**
+ * Load callback requests for this client
+ */
+async function loadCallbacks() {
+    const container = document.getElementById('callbacksContainer');
+    container.innerHTML = '<p style="color: rgba(0, 0, 0, 0.6);">Loading callbacks...</p>';
+
+    try {
+        const response = await fetch('/client/callbacks?status=pending&limit=50', {
+            headers: authHeaders
+        });
+
+        if (response.status === 401) {
+            logout();
+            return;
+        }
+
+        const data = await response.json();
+
+        if (!data.success || !data.callbacks) {
+            container.innerHTML = '<p style="color: #991B1B;">Failed to load callbacks</p>';
+            return;
+        }
+
+        if (data.callbacks.length === 0) {
+            container.innerHTML = '<div style="padding:8px;color:#666;font-style:italic;">No pending callbacks</div>';
+            return;
+        }
+
+        // Build simple list
+        const html = `
+            <div style="font-weight:700; margin-bottom:8px;">Pending Callbacks (${data.callbacks.length})</div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                ${data.callbacks.map(cb => `
+                    <div style="border:1px dashed rgba(0,0,0,0.1); padding:12px; border-radius:4px;">
+                        <div style="font-weight:700;">${cb.customer_name || cb.customer_phone}</div>
+                        <div style="font-size:0.9rem; color:#555;">Phone: ${cb.customer_phone}</div>
+                        <div style="font-size:0.9rem; color:#555;">When: ${cb.preferred_time}</div>
+                        <div style="font-size:0.9rem; color:#555;">Dept: ${cb.department}</div>
+                        <div style="margin-top:6px; color:#333;">${cb.reason}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading callbacks:', error);
+        container.innerHTML = '<p style="color: #991B1B;">Error loading callbacks</p>';
+    }
+}

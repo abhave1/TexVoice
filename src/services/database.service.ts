@@ -645,6 +645,28 @@ class DatabaseService {
     };
   }
 
+
+  /**
+ * Get callback requests (optionally only pending)
+  */
+  async getCallbackRequests(opts?: { status?: string; limit?: number }) {
+    const db = this.getDb();
+    const statusFilter = opts?.status ? `WHERE status = ?` : '';
+    const params: any[] = [];
+    if (opts?.status) params.push(opts.status);
+    const limit = opts?.limit || 50;
+
+    const rows = await db.all(
+      `SELECT id, client_id, customer_name, customer_phone, preferred_time, reason, department, status, created_at, completed_at
+      FROM callback_requests
+      ${statusFilter}
+      ORDER BY created_at DESC
+      LIMIT ?`,
+      [...params, limit]
+    );
+
+    return rows;
+  }
   /**
    * Save callback request
    */
@@ -689,6 +711,34 @@ class DatabaseService {
       data.department
     ]);
 
+  }
+
+  /**
+   * Get callback requests for a specific client
+   */
+  async getCallbackRequestsByClient(
+    clientId: string,
+    opts?: { status?: string; limit?: number }
+  ) {
+    const db = this.getDb();
+    const params: any[] = [clientId];
+    const statusFilter = opts?.status && opts.status !== 'all' ? 'AND status = ?' : '';
+    if (opts?.status && opts.status !== 'all') params.push(opts.status);
+    const limit = opts?.limit || 50;
+
+    const rows = await db.all(
+      `
+      SELECT id, client_id, customer_name, customer_phone, preferred_time, reason, department, status, created_at, completed_at
+      FROM callback_requests
+      WHERE client_id = ?
+      ${statusFilter}
+      ORDER BY created_at DESC
+      LIMIT ?
+      `,
+      [...params, limit]
+    );
+
+    return rows;
   }
 
   /**

@@ -383,6 +383,38 @@ export async function getClientCalls(request: FastifyRequest<{ Querystring: { li
   }
 }
 
+/**
+ * GET /client/callbacks
+ * Get callback requests for this client (authenticated)
+ */
+export async function getClientCallbacks(
+  request: FastifyRequest<{ Querystring: { status?: string; limit?: string } }>,
+  reply: FastifyReply
+) {
+  if (!verifyAuth(request, reply)) return;
+
+  try {
+    const { status = 'pending', limit = '50' } = request.query || ({} as any);
+
+    const callbacks = await databaseService.getCallbackRequestsByClient(CLIENT_ID, {
+      status: status === 'all' ? undefined : status,
+      limit: parseInt(limit)
+    });
+
+    return reply.send({
+      success: true,
+      callbacks
+    });
+  } catch (error: any) {
+    console.error('[ClientController] Error fetching callbacks:', error.message);
+    return reply.status(500).send({
+      success: false,
+      message: 'Failed to load callbacks',
+      error: error.message
+    });
+  }
+}
+
 // ==================== Helper Functions ====================
 
 /**
@@ -497,7 +529,9 @@ async function syncPhoneNumber() {
 
   const config = {
     assistantId: client.vapi_assistant_id,
-    serverUrl: `${SERVER_URL}/inbound`
+    server: {
+      url: `${SERVER_URL}/inbound`
+    }
   };
 
   await vapiClient.updatePhoneNumber(client.vapi_phone_number_id, config);

@@ -96,7 +96,9 @@ async function syncPhoneNumbers() {
         }
 
         const config = {
-          serverUrl: `${SERVER_URL}/inbound`,
+          server: {
+            url: `${SERVER_URL}/inbound`
+          },
           assistantId: null as any, // Remove static assignment - forces assistant-request
         };
 
