@@ -13,10 +13,7 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "vapi:sync": "tsx scripts/sync-vapi.ts",
-    "vapi:sync-assistants": "tsx scripts/sync-vapi.ts",
-    "onboard": "tsx scripts/onboard-client.ts",
-    "db:view": "tsx scripts/view-db.ts"
+    "vapi:sync": "tsx scripts/sync-vapi.ts"
   },
   "keywords": [
     "vapi",
@@ -36,6 +33,7 @@
     "@fastify/swagger": "^9.6.1",
     "@fastify/swagger-ui": "^5.2.3",
     "@types/sqlite3": "^3.1.11",
+    "@vapi-ai/server-sdk": "^0.11.0",
     "axios": "^1.13.2",
     "dotenv": "^17.2.3",
     "fastify": "^5.6.2",

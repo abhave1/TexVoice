@@ -1,8 +1,8 @@
 // src/types.ts
+// Minimal webhook types matching what Vapi actually sends
 
 /**
  * Base VAPI webhook payload
- * VAPI sends different message types throughout call lifecycle
  */
 export interface VapiPayload {
   message: VapiMessage;
@@ -16,9 +16,8 @@ export type VapiMessage =
   | AssistantStartedMessage
   | StatusUpdateMessage
   | ConversationUpdateMessage
-  | EndOfCallReportMessage
-  | ToolCallsMessage
-  | SpeechUpdateMessage;
+  | SpeechUpdateMessage
+  | EndOfCallReportMessage;
 
 /**
  * Initial call - VAPI asking for assistant configuration
@@ -41,9 +40,7 @@ export interface AssistantRequestMessage {
  */
 export interface AssistantStartedMessage {
   type: 'assistant.started';
-  call?: {
-    id: string;
-  };
+  call?: { id: string };
 }
 
 /**
@@ -52,9 +49,7 @@ export interface AssistantStartedMessage {
 export interface StatusUpdateMessage {
   type: 'status-update';
   status: 'queued' | 'ringing' | 'in-progress' | 'forwarding' | 'ended';
-  call?: {
-    id: string;
-  };
+  call?: { id: string };
   inboundPhoneCallDebuggingArtifacts?: {
     error?: string;
     assistantRequestError?: string;
@@ -67,15 +62,7 @@ export interface StatusUpdateMessage {
  */
 export interface ConversationUpdateMessage {
   type: 'conversation-update';
-  conversation: Array<{
-    role: 'assistant' | 'user' | 'system' | 'tool';
-    message?: string;
-    name?: string;
-    time: number;
-  }>;
-  call?: {
-    id: string;
-  };
+  call?: { id: string };
 }
 
 /**
@@ -83,12 +70,7 @@ export interface ConversationUpdateMessage {
  */
 export interface SpeechUpdateMessage {
   type: 'speech-update';
-  role: 'assistant' | 'user';
-  transcript?: string;
-  transcriptType?: 'partial' | 'final';
-  call?: {
-    id: string;
-  };
+  call?: { id: string };
 }
 
 /**
@@ -111,14 +93,6 @@ export interface EndOfCallReportMessage {
     successEvaluation?: string;
     structuredData?: Record<string, any>;
   };
-  messages?: Array<{
-    role: 'assistant' | 'user' | 'system' | 'tool' | 'function';
-    message?: string;
-    name?: string;
-    args?: string;
-    result?: string;
-    time?: number;
-  }>;
   cost?: number;
   costBreakdown?: {
     transport?: number;
@@ -126,24 +100,12 @@ export interface EndOfCallReportMessage {
     llm?: number;
     tts?: number;
     vapi?: number;
-    total?: number;
-    llmPromptTokens?: number;
-    llmCompletionTokens?: number;
-    ttsCharacters?: number;
   };
 }
 
 /**
- * Tool calls - handled by /tools endpoint
+ * Tool execution types
  */
-export interface ToolCallsMessage {
-  type: 'tool-calls';
-  toolCalls: VapiToolCall[];
-  call?: {
-    id: string;
-  };
-}
-
 export interface VapiToolCall {
   id: string;
   type: 'function';
@@ -160,6 +122,9 @@ export interface ToolResponse {
   }[];
 }
 
+/**
+ * Business domain types (custom to our application)
+ */
 export interface Customer {
   name: string;
   company: string;
