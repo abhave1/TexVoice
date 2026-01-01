@@ -199,6 +199,23 @@ class DatabaseService {
   }
 
   /**
+   * Get multiple calls by IDs in a single query (batch fetch)
+   * More efficient than calling getCall() in a loop
+   */
+  async getCallsByIds(callIds: string[]): Promise<any[]> {
+    if (callIds.length === 0) {
+      return [];
+    }
+
+    const db = this.getDb();
+    const placeholders = callIds.map(() => '?').join(',');
+    return await db.all(
+      `SELECT * FROM call_details WHERE id IN (${placeholders})`,
+      callIds
+    );
+  }
+
+  /**
    * Get recent calls
    */
   async getRecentCalls(limit: number = 10): Promise<any[]> {
@@ -207,6 +224,52 @@ class DatabaseService {
       'SELECT * FROM call_details ORDER BY created_at DESC LIMIT ?',
       [limit]
     );
+  }
+
+  /**
+   * Get billing summary with cost aggregation
+   * More efficient than fetching from VAPI API
+   */
+  async getBillingSummary(params?: {
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+  }): Promise<{ totalCost: number; callCount: number; calls: any[] }> {
+    const db = this.getDb();
+
+    let whereClause = 'WHERE 1=1';
+    const queryParams: any[] = [];
+
+    if (params?.startDate) {
+      whereClause += ' AND created_at >= ?';
+      queryParams.push(params.startDate);
+    }
+
+    if (params?.endDate) {
+      whereClause += ' AND created_at <= ?';
+      queryParams.push(params.endDate);
+    }
+
+    // Get calls with cost data
+    const calls = await db.all(`
+      SELECT
+        id, created_at, started_at, ended_at, duration_seconds,
+        cost_total, cost_transport, cost_stt, cost_llm, cost_tts, cost_vapi,
+        llm_prompt_tokens, llm_completion_tokens, tts_characters
+      FROM calls
+      ${whereClause}
+      ORDER BY created_at DESC
+      LIMIT ?
+    `, [...queryParams, params?.limit || 100]);
+
+    // Calculate total cost
+    const totalCost = calls.reduce((sum, call) => sum + (call.cost_total || 0), 0);
+
+    return {
+      totalCost,
+      callCount: calls.length,
+      calls
+    };
   }
 
   /**
@@ -351,6 +414,45 @@ class DatabaseService {
         CASE WHEN available > 0 THEN 0 ELSE 1 END,
         category, model
     `, [searchPattern, searchPattern, searchPattern]);
+  }
+
+  /**
+   * Search inventory with multiple query variations in a single query
+   * More efficient than multiple separate queries
+   */
+  async searchInventoryWithVariations(queryVariations: string[]): Promise<any[]> {
+    const db = this.getDb();
+
+    // Build WHERE clause with OR conditions for each variation
+    const whereConditions = queryVariations.map(() =>
+      '(model LIKE ? OR category LIKE ? OR specs LIKE ?)'
+    ).join(' OR ');
+
+    // Build parameter array: each variation needs 3 params (model, category, specs)
+    const params = queryVariations.flatMap(variation => {
+      const pattern = `%${variation}%`;
+      return [pattern, pattern, pattern];
+    });
+
+    // Group by model to deduplicate and aggregate available count
+    // This matches the original behavior of deduplicating by model name
+    return await db.all(`
+      SELECT
+        model,
+        category,
+        SUM(available) as available,
+        price_per_day,
+        condition,
+        year,
+        specs,
+        MAX(updated_at) as updated_at
+      FROM inventory
+      WHERE ${whereConditions}
+      GROUP BY model, price_per_day, condition, year, specs
+      ORDER BY
+        CASE WHEN SUM(available) > 0 THEN 0 ELSE 1 END,
+        category, model
+    `, params);
   }
 
   /**

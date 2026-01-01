@@ -347,23 +347,27 @@ export async function getClientCalls(request: FastifyRequest<{ Querystring: { li
 
     const allCalls = Array.isArray(vapiCalls) ? vapiCalls : (vapiCalls.results || []);
 
-    // Get structured data from database for each call
-    const callsWithStructuredData = await Promise.all(
-      allCalls.map(async (call: any) => {
-        // Get structured data from database
-        const dbCall = await databaseService.getCall(call.id);
+    // Batch fetch structured data from database (single query instead of N queries)
+    const callIds = allCalls.map((call: any) => call.id);
+    const dbCalls = await databaseService.getCallsByIds(callIds);
 
-        return {
-          ...call,
-          structuredData: dbCall ? {
-            intent_category: dbCall.intent_category,
-            machine_make: dbCall.machine_make,
-            machine_model: dbCall.machine_model,
-            outcome_type: dbCall.outcome_type
-          } : null
-        };
-      })
-    );
+    // Create a map for O(1) lookup
+    const dbCallsMap = new Map(dbCalls.map(call => [call.id, call]));
+
+    // Attach structured data to each call
+    const callsWithStructuredData = allCalls.map((call: any) => {
+      const dbCall = dbCallsMap.get(call.id);
+
+      return {
+        ...call,
+        structuredData: dbCall ? {
+          intent_category: dbCall.intent_category,
+          machine_make: dbCall.machine_make,
+          machine_model: dbCall.machine_model,
+          outcome_type: dbCall.outcome_type
+        } : null
+      };
+    });
 
     return reply.send({
       success: true,
@@ -393,8 +397,10 @@ async function syncTools() {
 
   console.log(`[ClientController] Syncing ${staticTools.length} static tools to Vapi`);
 
+  // Fetch existing tools ONCE before the loop
+  const existingTools = await vapiClient.listTools();
+
   for (const tool of staticTools) {
-    const existingTools = await vapiClient.listTools();
     const existing = existingTools.results.find(
       (t: any) => t.function.name === tool.function.name
     );

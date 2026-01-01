@@ -16,17 +16,19 @@ async function syncTools() {
   console.log('Tools are shared across all clients');
   console.log('Client-specific data (phone numbers, inventory) loaded from DB at runtime\n');
 
-  const results = [];
+  const results: Array<{ action: string; tool?: any; error?: string }> = [];
 
   // Get ALL static tools (not client-specific)
   const staticTools = getAllStaticTools();
+
+  // Fetch existing tools ONCE before the loop
+  const existingTools = await vapiClient.listTools();
 
   for (const tool of staticTools) {
     try {
       console.log(`Processing tool: ${tool.function.name}`);
 
-      // Try to find existing tool by name
-      const existingTools = await vapiClient.listTools();
+      // Find existing tool by name
       const existing = existingTools.results.find(
         t => t.function.name === tool.function.name
       );
@@ -62,7 +64,7 @@ async function syncTools() {
   // Save tool IDs to file for runtime use
   const toolIdMap: Record<string, string> = {};
   results.forEach(r => {
-    if (r.action !== 'error' && r.tool?.id) {
+    if (r.action !== 'error' && r.tool && typeof r.tool === 'object' && r.tool.id && r.tool.function) {
       toolIdMap[r.tool.function.name] = r.tool.id;
     }
   });
@@ -78,7 +80,7 @@ async function syncTools() {
 async function syncPhoneNumbers() {
   console.log('Syncing phone numbers to Vapi...\n');
 
-  const results = [];
+  const results: Array<{ action: string; number?: string; client?: string; assistantId?: string; error?: string }> = [];
   const SERVER_URL = (process.env.SERVER_URL || 'https://texintel.com').replace(/\/$/, '');
 
   try {
@@ -132,7 +134,7 @@ async function syncPhoneNumbers() {
           serverUrl: `${SERVER_URL}/inbound`
         };
 
-        const updated = await vapiClient.updatePhoneNumber(phoneNumberId, config);
+        await vapiClient.updatePhoneNumber(phoneNumberId, config);
 
         results.push({ action: 'updated', number, client: client.name, assistantId: client.vapi_assistant_id });
         console.log(`   Updated successfully`);
@@ -302,11 +304,11 @@ async function main() {
     }
 
     // Sync tools FIRST (assistants depend on tool IDs)
-    const toolResults = await syncTools();
+    await syncTools();
     console.log('');
 
     // Sync structured outputs (assistants depend on structured output IDs)
-    const structuredOutputResult = await syncStructuredOutputs();
+    await syncStructuredOutputs();
     console.log('');
 
     // Sync assistants (NEW)

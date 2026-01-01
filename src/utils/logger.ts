@@ -134,19 +134,6 @@ export class Logger {
   }
 
   /**
-   * Write to call-specific log file
-   */
-  private writeToFile(callId: string, message: string) {
-    try {
-      const logFile = path.join(LOGS_DIR, `${callId}.log`);
-      const timestamp = new Date().toISOString();
-      fs.appendFileSync(logFile, `[${timestamp}] ${message}\n`, 'utf8');
-    } catch (error) {
-      console.error('Failed to write to log file:', error);
-    }
-  }
-
-  /**
    * Save JSON data to file for a specific call
    */
   saveJSON(callId: string, filename: string, data: any) {

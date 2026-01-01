@@ -60,23 +60,31 @@ export class AdminController {
     try {
       const { startDate, endDate, limit = '100' } = request.query as any;
 
-      const costData = await vapiClient.getCallCosts({
-        limit: parseInt(limit),
-        ...(startDate && { createdAtGt: startDate }),
-        ...(endDate && { createdAtLt: endDate })
+      // Use database instead of VAPI API for faster billing queries
+      const billingSummary = await databaseService.getBillingSummary({
+        startDate,
+        endDate,
+        limit: parseInt(limit)
       });
 
       return reply.send({
-        totalCost: costData.totalCost,
-        callCount: costData.calls.length,
-        calls: costData.calls.map(call => ({
+        totalCost: billingSummary.totalCost,
+        callCount: billingSummary.callCount,
+        calls: billingSummary.calls.map(call => ({
           id: call.id,
-          createdAt: call.createdAt,
-          duration: call.endedAt && call.startedAt
-            ? (new Date(call.endedAt).getTime() - new Date(call.startedAt).getTime()) / 1000
-            : null,
-          cost: call.cost,
-          costBreakdown: call.costBreakdown
+          createdAt: call.created_at,
+          duration: call.duration_seconds,
+          cost: call.cost_total,
+          costBreakdown: {
+            transport: call.cost_transport,
+            stt: call.cost_stt,
+            llm: call.cost_llm,
+            tts: call.cost_tts,
+            vapi: call.cost_vapi,
+            llmPromptTokens: call.llm_prompt_tokens,
+            llmCompletionTokens: call.llm_completion_tokens,
+            ttsCharacters: call.tts_characters
+          }
         }))
       });
     } catch (error: any) {

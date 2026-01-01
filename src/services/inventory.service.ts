@@ -23,25 +23,9 @@ export class InventoryService {
       normalizedQuery.replace(/loader/g, 'wheel loader'), // common variation
     ];
 
-    // Search database for each variation and combine results
-    const resultSets = await Promise.all(
-      queryVariations.map(variation => databaseService.searchInventory(variation))
-    );
-
-    // Flatten and deduplicate by model
-    const seen = new Set<string>();
-    const uniqueResults: any[] = [];
-
-    for (const results of resultSets) {
-      for (const item of results) {
-        if (!seen.has(item.model)) {
-          seen.add(item.model);
-          uniqueResults.push(item);
-        }
-      }
-    }
-
-    return uniqueResults;
+    // Use optimized single-query search with all variations
+    // This is much faster than running 5 separate queries
+    return await databaseService.searchInventoryWithVariations(queryVariations);
   }
 
   /**

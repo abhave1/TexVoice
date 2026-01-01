@@ -153,11 +153,13 @@ async function ensureToolsExist(): Promise<Record<string, string>> {
   const tools = getAllStaticTools();
   const toolIdMap: Record<string, string> = {};
 
+  // Fetch existing tools ONCE before the loop
+  const existingTools = await vapiClient.listTools();
+
   for (const tool of tools) {
     const toolName = tool.function.name;
 
     // Check if tool exists
-    const existingTools = await vapiClient.listTools();
     const existingTool = existingTools.results.find(
       (t: any) => t.function?.name === toolName
     );

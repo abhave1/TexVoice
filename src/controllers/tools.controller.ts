@@ -1,6 +1,6 @@
 // src/controllers/tools.controller.ts
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { VapiPayload, ToolResponse } from '../types';
+import { VapiPayload } from '../types';
 import { inventoryService } from '../services/inventory.service';
 import { databaseService } from '../services/database.service';
 import axios from 'axios';
