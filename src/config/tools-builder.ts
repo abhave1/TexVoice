@@ -1,7 +1,9 @@
 // src/config/tools-builder.ts
 import { VapiTool } from '../types/vapi.types';
 
-const SERVER_URL = (process.env.SERVER_URL || 'http://localhost:3000').replace(/\/$/, '');
+function getServerUrl(): string {
+  return (process.env.SERVER_URL || 'http://localhost:3000').replace(/\/$/, '');
+}
 
 /**
  * STATIC TOOLS - Created once in Vapi, client-specific data loaded from DB at runtime
@@ -36,7 +38,7 @@ export function buildCheckInventoryTool(): VapiTool {
     },
     async: false,
     server: {
-      url: `${SERVER_URL}/tools`
+      url: `${getServerUrl()}/tools`
     }
   };
 }
@@ -76,7 +78,7 @@ export function buildTransferCallTool(): VapiTool {
     },
     async: false,
     server: {
-      url: `${SERVER_URL}/tools`
+      url: `${getServerUrl()}/tools`
     }
   };
 }
@@ -121,7 +123,7 @@ export function buildScheduleCallbackTool(): VapiTool {
     },
     async: false,
     server: {
-      url: `${SERVER_URL}/tools`
+      url: `${getServerUrl()}/tools`
     }
   };
 }

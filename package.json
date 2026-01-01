@@ -5,7 +5,8 @@
   "main": "dist/app.js",
   "scripts": {
     "build": "tsc",
-    "postbuild": "mkdir -p dist/db && cp src/db/schema.sql dist/db/schema.sql && cp -R public dist/public && if [ -n \"$VAPI_API_KEY\" ]; then echo 'Running vapi sync...' && npm run vapi:sync; else echo 'VAPI_API_KEY not set — skipping vapi:sync'; fi",
+    "postbuild": "mkdir -p dist/db && cp src/db/schema.sql dist/db/schema.sql && cp -R public dist/public",
+    "prestart": "if [ -n \"$VAPI_API_KEY\" ] && [ -n \"$SERVER_URL\" ]; then echo 'Running vapi sync (prestart)...' && npm run vapi:sync; else echo 'VAPI_API_KEY or SERVER_URL not set — skipping vapi:sync'; fi",
     "start": "node dist/app.js",
     "dev": "tsx --watch src/app.ts",
     "clean": "rm -rf dist",
