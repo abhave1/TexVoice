@@ -3,11 +3,16 @@ import Fastify, { FastifyInstance } from 'fastify';
 import formBody from '@fastify/formbody';
 import cors from '@fastify/cors';
 import { toolRoutes } from '../src/routes/tools';
+import { databaseService } from '../src/services/database.service';
 
 describe('Tools Route - Inventory Checking', () => {
   let app: FastifyInstance;
 
   beforeAll(async () => {
+    // Initialize database with in-memory DB for testing
+    process.env.DATABASE_PATH = ':memory:';
+    await databaseService.init();
+
     app = Fastify({ logger: false });
     await app.register(cors);
     await app.register(formBody);

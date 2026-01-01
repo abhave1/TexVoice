@@ -240,7 +240,7 @@ function renderBilling() {
                             <td>${new Date(call.createdAt).toLocaleString()}</td>
                             <td><button class="link-btn" onclick="viewCallDetails('${call.id}')">${call.id.substring(0, 12)}...</button></td>
                             <td>${call.duration ? call.duration.toFixed(0) + 's' : 'N/A'}</td>
-                            <td>$${call.cost.toFixed(4)}</td>
+                            <td>$${call.cost ? call.cost.toFixed(4) : '0.0000'}</td>
                         </tr>
                     `).join('')}
                 </tbody>
