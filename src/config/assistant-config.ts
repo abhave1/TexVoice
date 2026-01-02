@@ -50,7 +50,7 @@ export function buildBaseAssistantConfig() {
   return {
     model: {
       provider: "anthropic" as const,
-      model: "claude-sonnet-4-5-20250929",
+      model: "claude-haiku-4-5-20251001",
       temperature: 0,  // ZERO - prevent all hallucinations
     },
     voice: {
@@ -152,10 +152,16 @@ export function getToolIdsForClient(
     toolIds.push(toolIdMap.schedule_callback);
   }
 
+  // end_call is always available (to gracefully end calls after transfers/callbacks)
+  if (toolIdMap.end_call) {
+    toolIds.push(toolIdMap.end_call);
+  }
+
   console.log(`[AssistantConfig] Tools for ${clientId}:`, {
     inventory: enableInventory ? 'enabled' : 'disabled',
     transfers: enableTransfers ? 'enabled' : 'disabled',
     callbacks: 'always enabled',
+    endCall: 'always enabled',
     toolCount: toolIds.length
   });
 

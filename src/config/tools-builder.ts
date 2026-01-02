@@ -129,6 +129,25 @@ export function buildScheduleCallbackTool(): VapiTool {
 }
 
 /**
+ * Build end_call tool
+ * Used to gracefully end the call after task completion
+ */
+export function buildEndCallTool(): VapiTool {
+  return {
+    type: 'endCall',
+    function: {
+      name: 'end_call',
+      description: 'End the call gracefully. Use this after: (1) Successfully transferring the call, OR (2) Scheduling a callback, OR (3) Customer says goodbye. Say a brief goodbye message before using this.',
+      parameters: {
+        type: 'object',
+        properties: {}
+      }
+    },
+    async: false
+  };
+}
+
+/**
  * Get ALL static tools (not client-specific)
  * These tools are created ONCE in Vapi and shared across all clients
  * Client-specific data is loaded from database when tools are called
@@ -137,7 +156,8 @@ export function getAllStaticTools(): VapiTool[] {
   return [
     buildCheckInventoryTool(),
     buildTransferCallTool(),
-    buildScheduleCallbackTool()
+    buildScheduleCallbackTool(),
+    buildEndCallTool()
   ];
 }
 

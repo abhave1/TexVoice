@@ -40,16 +40,21 @@ export async function buildDynamicContext(context: CallContext): Promise<{
   contextMessage: string;
   isAfterHours: boolean;
 }> {
-  const { callerPhone } = context;
+  const { callerPhone, clientId } = context;
 
-  // 1. Look up caller history
+  // 1. Get client info for company name
+  const client = await databaseService.getClientById(clientId);
+  const companyName = client?.name || 'Tex Intel';
+
+  // 2. Look up caller history
   const callerHistory = await getCallerHistory(callerPhone);
 
-  // 2. Check business hours
+  // 3. Check business hours
   const businessHours = getBusinessHoursInfo();
 
-  // 3. Start with the full system prompt from single source of truth
-  let contextMessage = SYSTEM_PROMPT + '\n\n---\n\nCURRENT CALL CONTEXT:\n\n';
+  // 4. Start with the full system prompt and replace {{company_name}} with actual name
+  let contextMessage = SYSTEM_PROMPT.replace(/\{\{company_name\}\}/g, companyName);
+  contextMessage += '\n\n---\n\nCURRENT CALL CONTEXT:\n\n';
 
   // === CALLER INFORMATION ===
   if (callerHistory.name) {
