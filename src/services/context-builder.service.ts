@@ -1,11 +1,15 @@
 // src/services/context-builder.service.ts
 import { databaseService } from './database.service';
-import { SYSTEM_PROMPT } from '../prompts/system-prompt';
 
 /**
  * Context Builder Service
- * Builds dynamic per-call context for assistant overrides
+ * Builds dynamic per-call variable values for assistant overrides
  * This is the "transient" part of the hybrid approach
+ *
+ * VARIABLES INJECTED INTO ASSISTANT PROMPT:
+ * 1. {{caller_context}} - Caller information (name, company, history)
+ * 2. {{business_hours_context}} - Current time, office status, next open time
+ * 3. {{additional_context}} - Any extra client-specific context
  */
 
 interface CallContext {
@@ -31,20 +35,21 @@ interface BusinessHoursInfo {
 }
 
 /**
- * Build dynamic system message context for a call
- * This gets injected as a transient override to the permanent assistant
- *
- * INJECTING FULL PROMPT HERE to ensure it's always used
+ * Build dynamic variable values for a call
+ * Returns structured data to be injected into assistant prompt template
  */
 export async function buildDynamicContext(context: CallContext): Promise<{
-  contextMessage: string;
+  variables: {
+    caller_context: string;
+    business_hours_context: string;
+    additional_context: string;
+  };
   isAfterHours: boolean;
 }> {
   const { callerPhone, clientId } = context;
 
-  // 1. Get client info for company name
+  // 1. Get client info
   const client = await databaseService.getClientById(clientId);
-  const companyName = client?.name || 'Tex Intel';
 
   // 2. Look up caller history
   const callerHistory = await getCallerHistory(callerPhone);
@@ -52,41 +57,41 @@ export async function buildDynamicContext(context: CallContext): Promise<{
   // 3. Check business hours
   const businessHours = getBusinessHoursInfo();
 
-  // 4. Start with the full system prompt and replace {{company_name}} with actual name
-  let contextMessage = SYSTEM_PROMPT.replace(/\{\{company_name\}\}/g, companyName);
-  contextMessage += '\n\n---\n\nCURRENT CALL CONTEXT:\n\n';
-
-  // === CALLER INFORMATION ===
+  // 4. Build caller context variable
+  let callerContext = '';
   if (callerHistory.name) {
-    contextMessage += `CALLER:\n`;
-    contextMessage += `- Name: ${callerHistory.name}\n`;
+    callerContext += `Name: ${callerHistory.name}\n`;
     if (callerHistory.company) {
-      contextMessage += `- Company: ${callerHistory.company}\n`;
+      callerContext += `Company: ${callerHistory.company}\n`;
     }
     if (callerHistory.status) {
-      contextMessage += `- Status: ${callerHistory.status}\n`;
+      callerContext += `Status: ${callerHistory.status}\n`;
     }
     if (callerHistory.last_machine) {
-      contextMessage += `- Previously asked about: ${callerHistory.last_machine}\n`;
+      callerContext += `Previously asked about: ${callerHistory.last_machine}\n`;
     }
-    contextMessage += `- Phone: ${callerPhone}\n\n`;
+    callerContext += `Phone: ${callerPhone}`;
   } else {
-    contextMessage += `CALLER:\n`;
-    contextMessage += `- New caller (no history)\n`;
-    contextMessage += `- Phone: ${callerPhone}\n\n`;
+    callerContext = `New caller (no history)\nPhone: ${callerPhone}`;
   }
 
-  // === BUSINESS HOURS STATUS ===
-  contextMessage += `BUSINESS STATUS:\n`;
-  contextMessage += `- Current time: ${businessHours.currentDay}, ${businessHours.currentTime}\n`;
-  contextMessage += `- Office status: ${businessHours.isOpen ? 'OPEN' : 'CLOSED'}\n`;
+  // 5. Build business hours context variable
+  let businessHoursContext = '';
+  businessHoursContext += `Current time: ${businessHours.currentDay}, ${businessHours.currentTime}\n`;
+  businessHoursContext += `Office status: ${businessHours.isOpen ? 'OPEN' : 'CLOSED'}`;
   if (!businessHours.isOpen && businessHours.nextOpenTime) {
-    contextMessage += `- Next open: ${businessHours.nextOpenTime}\n`;
+    businessHoursContext += `\nNext open: ${businessHours.nextOpenTime}`;
   }
-  contextMessage += `\n`;
+
+  // 6. Additional context (can be customized per client later)
+  const additionalContext = client?.additional_context || '';
 
   return {
-    contextMessage,
+    variables: {
+      caller_context: callerContext,
+      business_hours_context: businessHoursContext,
+      additional_context: additionalContext
+    },
     isAfterHours: !businessHours.isOpen
   };
 }

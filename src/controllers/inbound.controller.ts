@@ -9,8 +9,13 @@ import { buildDynamicContext, buildFirstMessage } from '../services/context-buil
  * Routes to specific handlers based on message type
  *
  * HYBRID APPROACH:
- * - Permanent assistant (stored in Vapi) provides base behavior
- * - Transient overrides (built per-call) provide dynamic context
+ * - Permanent assistant (stored in Vapi) provides base behavior + prompt template
+ * - Transient overrides (built per-call) inject dynamic variable values
+ *
+ * REQUIRED VARIABLES IN ASSISTANT PROMPT:
+ * - {{caller_context}} - Caller information (name, company, history)
+ * - {{business_hours_context}} - Current time, office status, next open time
+ * - {{additional_context}} - Any extra client-specific context
  */
 export async function handleInboundCall(request: FastifyRequest, reply: FastifyReply) {
   try {
@@ -58,8 +63,8 @@ export async function handleInboundCall(request: FastifyRequest, reply: FastifyR
 /**
  * Handle initial assistant configuration request
  * HYBRID APPROACH:
- * - Returns permanent assistant ID (base behavior)
- * - Injects transient overrides (dynamic context, personalized greeting)
+ * - Returns permanent assistant ID (base behavior + prompt template with variables)
+ * - Injects transient variable values (caller info, business hours, personalized greeting)
  */
 async function handleAssistantRequest(message: AssistantRequestMessage, reply: FastifyReply) {
   const phoneNumberId = message.call.phoneNumberId;
@@ -101,15 +106,15 @@ async function handleAssistantRequest(message: AssistantRequestMessage, reply: F
       console.log(`[AssistantRequest] New caller: ${callerNumber}`);
     }
 
-    // ========== STEP 3: Build dynamic context ==========
-    console.log(`[AssistantRequest] 🔨 Building dynamic context...`);
-    const { contextMessage: dynamicContext, isAfterHours } = await buildDynamicContext({
+    // ========== STEP 3: Build dynamic context variables ==========
+    console.log(`[AssistantRequest] 🔨 Building dynamic context variables...`);
+    const { variables, isAfterHours } = await buildDynamicContext({
       callerPhone: callerNumber,
       clientId: client.id,
       phoneNumberId: phoneNumberId || ''
     });
 
-    console.log(`[AssistantRequest] Dynamic context built (${dynamicContext.length} chars)`);
+    console.log(`[AssistantRequest] Variables built: caller_context (${variables.caller_context.length} chars), business_hours_context (${variables.business_hours_context.length} chars)`);
     console.log(`[AssistantRequest] 🕐 After hours: ${isAfterHours ? 'YES (callbacks only)' : 'NO (transfers available)'}`);
 
     // ========== STEP 4: Build personalized first message ==========
@@ -128,17 +133,12 @@ async function handleAssistantRequest(message: AssistantRequestMessage, reply: F
     // ========== STEP 5: Return hybrid configuration ==========
     const response = {
       assistantId: client.vapi_assistant_id, // PERMANENT: Pre-created assistant
-      assistantOverrides: { // TRANSIENT: Dynamic per-call overrides
+      assistantOverrides: { // TRANSIENT: Dynamic per-call variable injection
         firstMessage,
-        model: {
-          provider: 'groq',
-          model: 'llama3-70b-8192', // Must match permanent assistant's model
-          messages: [
-            {
-              role: 'system',
-              content: dynamicContext // Real-time context injection
-            }
-          ]
+        variableValues: {
+          caller_context: variables.caller_context,
+          business_hours_context: variables.business_hours_context,
+          additional_context: variables.additional_context
         }
       }
     };

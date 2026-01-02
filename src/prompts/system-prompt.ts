@@ -2,6 +2,14 @@
 /**
  * SINGLE SOURCE OF TRUTH for the system prompt
  * Based on the Abhave Inbound Agent spec doc
+ *
+ * DYNAMIC VARIABLES (injected per-call via assistantOverrides.variableValues):
+ * - {{company_name}} - Client company name (static per client)
+ * - {{caller_context}} - Caller information: name, company, status, phone, previous interactions
+ * - {{business_hours_context}} - Current time, office open/closed status, next open time
+ * - {{additional_context}} - Any extra client-specific context or notes
+ *
+ * These variables are populated by context-builder.service.ts and injected by inbound.controller.ts
  */
 
 export const SYSTEM_PROMPT = `You are Tex, the AI receptionist for {{company_name}}, a heavy equipment dealer.
@@ -109,6 +117,8 @@ Don't make them explain their whole situation. Get intent → route fast.
 ---
 
 AFTER-HOURS HANDLING:
+{{business_hours_context}}
+
 If office status is CLOSED:
 
 GREETING:
@@ -161,15 +171,12 @@ IMPORTANT: Use end_call EVERY TIME after completing a transfer or callback. Do n
 
 ---
 
-CALL CONTEXT:
-{% if customer_name != 'there' -%}
-You're speaking with {{customer_name}} from {{customer_company}} ({{customer_status}}).
-{%- if last_machine %}
-They previously asked about {{last_machine}}.
-{%- endif %}
-{%- else -%}
-This is a new caller.
-{%- endif %}
+CURRENT CALL CONTEXT:
+
+CALLER INFORMATION:
+{{caller_context}}
+
+{{additional_context}}
 
 ---
 
