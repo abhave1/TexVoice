@@ -131,8 +131,8 @@ async function handleAssistantRequest(message: AssistantRequestMessage, reply: F
       assistantOverrides: { // TRANSIENT: Dynamic per-call overrides
         firstMessage,
         model: {
-          provider: 'anthropic',
-          model: 'claude-haiku-4-5-20251001', // Must match permanent assistant's model
+          provider: 'groq',
+          model: 'llama3-70b-8192', // Must match permanent assistant's model
           messages: [
             {
               role: 'system',

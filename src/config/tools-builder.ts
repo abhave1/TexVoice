@@ -235,9 +235,9 @@ export const STRUCTURED_OUTPUT_SCHEMA = {
             type: "string" as const,
             description: "What happens next (e.g., 'Sales will call back', 'Customer will email quote', 'Booking in progress')"
           },
-          scheduled_callback_time: {
+          callback_scheduled_for: {
             type: "string" as const,
-            description: "When callback is scheduled if applicable"
+            description: "REQUIRED if outcome type is 'callback_scheduled'. Extract the exact time/day when the AI scheduled the callback (e.g., 'tomorrow at 8 AM', 'Monday at 9am', 'this afternoon at 2pm'). Look for phrases like 'I've scheduled your callback for...' or 'We'll call you back...'"
           }
         },
         required: ["type"]

@@ -251,7 +251,7 @@ VALUES (
   '+16025705474',
   'Thanks for calling Tex Intel. How can I help you?',
   NULL,  -- No custom prompt additions
-  1,     -- Inventory enabled
+  0,     -- Inventory disabled (tool exists in Vapi but not assigned to assistant)
   1      -- Transfers enabled
 );
 

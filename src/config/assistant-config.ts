@@ -50,12 +50,15 @@ export function buildBaseAssistantConfig() {
   return {
     model: {
       provider: "anthropic" as const,
-      model: "claude-haiku-4-5-20251001",
-      temperature: 0.7,
+      model: "claude-sonnet-4-5-20250929",
+      temperature: 0,  // ZERO - prevent all hallucinations
     },
     voice: {
-      provider: "vapi" as const,
-      voiceId: "Elliot"
+      provider: "11labs" as const,
+      voiceId: "cgSgspJ2msm6clMCkdW9",
+      model: "eleven_turbo_v2_5",
+      stability: 0.5,
+      similarityBoost: 0.75
     },
     transcriber: {
       provider: "deepgram" as const,
