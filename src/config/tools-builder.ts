@@ -92,7 +92,7 @@ export function buildScheduleCallbackTool(): VapiTool {
     type: 'function',
     function: {
       name: 'schedule_callback',
-      description: 'Schedule a callback for the customer. Use this when: (1) Office is CLOSED and customer needs help, (2) Customer explicitly requests a callback, (3) Customer wants to be contacted at a specific time. Ask for their preferred callback time (e.g., "tomorrow morning", "this afternoon at 2pm", "Monday").',
+      description: 'Schedule a callback for the customer. Use this when: (1) Office is CLOSED and customer needs help, (2) Customer explicitly requests a callback, (3) Customer wants to be contacted at a specific time. IMPORTANT: You MUST explicitly ask for their phone number ("What\'s the best number to reach you?") even if you see a phone number in the caller context. You must also collect and confirm a SPECIFIC date and time (e.g., "tomorrow, January 2nd at 9am", "Monday at 2pm") - do NOT accept vague times like "tomorrow" or "morning" without drilling down to get the exact time.',
       parameters: {
         type: 'object',
         properties: {
@@ -102,11 +102,11 @@ export function buildScheduleCallbackTool(): VapiTool {
           },
           customer_phone: {
             type: 'string',
-            description: 'Customer\'s phone number for callback'
+            description: 'Customer\'s phone number for callback. MUST be explicitly collected by asking "What\'s the best number to reach you?" - NEVER use the phone number from caller context without asking.'
           },
           preferred_time: {
             type: 'string',
-            description: 'When they want to be called back (e.g., "tomorrow morning", "Monday at 9am", "this afternoon")'
+            description: 'SPECIFIC date and time when they want to be called back. Must include both day/date AND time (e.g., "tomorrow, January 2nd at 9am", "Monday, January 6th at 2pm", "today at 3:30pm"). Do NOT use vague terms like "tomorrow" or "morning" alone - always include the full date and specific time that was confirmed with the customer.'
           },
           reason: {
             type: 'string',
@@ -137,7 +137,7 @@ export function buildEndCallTool(): VapiTool {
     type: 'endCall',
     function: {
       name: 'end_call',
-      description: 'End the call gracefully. Use this after: (1) Successfully transferring the call, OR (2) Scheduling a callback, OR (3) Customer says goodbye. Say a brief goodbye message before using this.',
+      description: 'End the call gracefully. Use this ONLY after: (1) Speaking the result from schedule_callback (the tool returns a goodbye message - speak it first), OR (2) Successfully transferring a call, OR (3) Customer says goodbye. For schedule_callback: call the tool, RECEIVE the result, SPEAK the result, THEN call end_call in the next turn.',
       parameters: {
         type: 'object',
         properties: {}
@@ -257,7 +257,7 @@ export const STRUCTURED_OUTPUT_SCHEMA = {
           },
           callback_scheduled_for: {
             type: "string" as const,
-            description: "REQUIRED if outcome type is 'callback_scheduled'. Extract the exact time/day when the AI scheduled the callback (e.g., 'tomorrow at 8 AM', 'Monday at 9am', 'this afternoon at 2pm'). Look for phrases like 'I've scheduled your callback for...' or 'We'll call you back...'"
+            description: "REQUIRED if outcome type is 'callback_scheduled'. Extract the EXACT DATE AND TIME when the AI scheduled the callback. Must include both the specific date and time (e.g., 'January 2nd at 9am', 'tomorrow, Jan 2 at 2pm', 'Monday, January 6th at 10:30am'). Look for the confirmation phrase where the AI confirms the date and time (e.g., 'Just to confirm, that's...' or 'I've scheduled a callback for...'). DO NOT use vague terms like 'tomorrow' or 'later' - extract the FULL date and time that was confirmed."
           }
         },
         required: ["type"]

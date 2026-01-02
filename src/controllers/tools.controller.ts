@@ -240,7 +240,7 @@ async function handleScheduleCallback(payload: any, args: any): Promise<string> 
     console.log(`[Callback] Scheduled callback for ${customer_name} at ${preferred_time} (${department})`);
 
     // Return confirmation message to assistant - conversational, not robotic
-    return `Got it! I've got you down for a callback ${preferred_time}. Someone from ${department} will give you a call then. Anything else you want me to pass along to them?`;
+    return `Perfect! I've scheduled a callback for ${preferred_time}. Someone from ${department} will give you a call then. Thanks for calling, and have a great day!`;
   } catch (error: any) {
     console.error('[Callback] Failed to save callback request:', error.message);
     return "Got it, I've made a note of that. Someone will give you a call back during business hours.";

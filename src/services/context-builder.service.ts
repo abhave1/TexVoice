@@ -30,6 +30,7 @@ interface CallerHistory {
 interface BusinessHoursInfo {
   isOpen: boolean;
   currentDay: string;
+  currentDate: string;
   currentTime: string;
   nextOpenTime?: string;
 }
@@ -77,10 +78,15 @@ export async function buildDynamicContext(context: CallContext): Promise<{
 
   // 5. Build business hours context variable
   let businessHoursContext = '';
+  businessHoursContext += `Today's date: ${businessHours.currentDate}\n`;
   businessHoursContext += `Current time: ${businessHours.currentDay}, ${businessHours.currentTime}\n`;
-  businessHoursContext += `Office status: ${businessHours.isOpen ? 'OPEN' : 'CLOSED'}`;
+  businessHoursContext += `Office status: ${businessHours.isOpen ? 'OPEN' : 'CLOSED'}\n`;
+  businessHoursContext += `\nBUSINESS HOURS SCHEDULE:\n`;
+  businessHoursContext += `- Monday-Friday: 8:00 AM to 12:00 PM (noon)\n`;
+  businessHoursContext += `- Saturday: 9:00 AM to 3:00 PM\n`;
+  businessHoursContext += `- Sunday: CLOSED`;
   if (!businessHours.isOpen && businessHours.nextOpenTime) {
-    businessHoursContext += `\nNext open: ${businessHours.nextOpenTime}`;
+    businessHoursContext += `\n\nNext open: ${businessHours.nextOpenTime}`;
   }
 
   // 6. Additional context (can be customized per client later)
@@ -135,6 +141,15 @@ function getBusinessHoursInfo(): BusinessHoursInfo {
 
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const currentDay = dayNames[day];
+
+  // Get full date string (e.g., "January 2, 2026")
+  const currentDate = arizonaTime.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'America/Phoenix'
+  });
+
   const currentTime = arizonaTime.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
@@ -142,16 +157,16 @@ function getBusinessHoursInfo(): BusinessHoursInfo {
     timeZone: 'America/Phoenix'
   });
 
-  // Business hours: Monday-Friday 8am-8pm, Saturday 9am-3pm (TESTING: extended to 8pm)
+  // Business hours: Monday-Friday 8am-12pm, Saturday 9am-3pm (TESTING: shortened to 12pm for callback testing)
   let isOpen = false;
   let nextOpenTime: string | undefined;
 
   if (day >= 1 && day <= 5) {
     // Monday-Friday
-    isOpen = hour >= 8 && hour < 20;  // TESTING: changed from 18 to 20 (8pm)
+    isOpen = hour >= 8 && hour < 12;  // TESTING: changed to 12pm (noon) for callback testing
     if (!isOpen && hour < 8) {
       nextOpenTime = `Today at 8:00 AM`;
-    } else if (!isOpen && hour >= 20) {
+    } else if (!isOpen && hour >= 12) {
       nextOpenTime = day === 5 ? 'Saturday at 9:00 AM' : 'Tomorrow at 8:00 AM';
     }
   } else if (day === 6) {
@@ -170,6 +185,7 @@ function getBusinessHoursInfo(): BusinessHoursInfo {
   return {
     isOpen,
     currentDay,
+    currentDate,
     currentTime,
     nextOpenTime
   };
