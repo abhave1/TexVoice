@@ -92,7 +92,7 @@ export function buildScheduleCallbackTool(): VapiTool {
     type: 'function',
     function: {
       name: 'schedule_callback',
-      description: 'Schedule a callback for the customer. Use this when: (1) Office is CLOSED and customer needs help, (2) Customer explicitly requests a callback, (3) Customer wants to be contacted at a specific time. IMPORTANT: You MUST explicitly ask for their phone number ("What\'s the best number to reach you?") even if you see a phone number in the caller context. You must also collect and confirm a SPECIFIC date and time (e.g., "tomorrow, January 2nd at 9am", "Monday at 2pm") - do NOT accept vague times like "tomorrow" or "morning" without drilling down to get the exact time.',
+      description: 'Schedule a callback for the customer. THIS TOOL RETURNS A CONFIRMATION MESSAGE - YOU MUST SPEAK IT TO THE CUSTOMER BEFORE DOING ANYTHING ELSE. Use this when: (1) Office is CLOSED and customer needs help, (2) Customer explicitly requests a callback, (3) Customer wants to be contacted at a specific time. WORKFLOW: Call tool → Receive confirmation message → Speak the message → Ask if anything else → Say goodbye → End call. IMPORTANT: You MUST explicitly ask for their phone number ("What\'s the best number to reach you?") even if you see a phone number in the caller context. You must also collect and confirm a SPECIFIC date and time (e.g., "tomorrow, January 2nd at 9am", "Monday at 2pm") - do NOT accept vague times like "tomorrow" or "morning" without drilling down to get the exact time.',
       parameters: {
         type: 'object',
         properties: {
@@ -137,7 +137,7 @@ export function buildEndCallTool(): VapiTool {
     type: 'endCall',
     function: {
       name: 'end_call',
-      description: 'End the call gracefully. Use this ONLY after: (1) Speaking the result from schedule_callback (the tool returns a goodbye message - speak it first), OR (2) Successfully transferring a call, OR (3) Customer says goodbye. For schedule_callback: call the tool, RECEIVE the result, SPEAK the result, THEN call end_call in the next turn.',
+      description: 'End the call gracefully. CRITICAL: DO NOT call this immediately after schedule_callback! WAIT FOR THE TOOL RESULT FIRST. Correct flow: (1) Call schedule_callback → (2) Tool returns confirmation message → (3) SPEAK the message to customer → (4) Ask "Is there anything else?" → (5) Customer responds → (6) Say goodbye → (7) THEN call end_call. Also use after successful transfers or when customer says goodbye. NEVER use this until you have spoken the callback confirmation to the customer.',
       parameters: {
         type: 'object',
         properties: {}

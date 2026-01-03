@@ -33,6 +33,12 @@ interface BusinessHoursInfo {
   currentDate: string;
   currentTime: string;
   nextOpenTime?: string;
+  upcomingBusinessDays: {
+    tomorrow?: string;
+    nextBusinessDay: string;
+    nextMonday: string;
+    nextTuesday: string;
+  };
 }
 
 /**
@@ -88,6 +94,15 @@ export async function buildDynamicContext(context: CallContext): Promise<{
   if (!businessHours.isOpen && businessHours.nextOpenTime) {
     businessHoursContext += `\n\nNext open: ${businessHours.nextOpenTime}`;
   }
+  
+  // Add pre-computed dates to prevent AI calendar calculation errors
+  businessHoursContext += `\n\nPRE-COMPUTED DATES (use these exact phrases):`;
+  if (businessHours.upcomingBusinessDays.tomorrow) {
+    businessHoursContext += `\n- Tomorrow: ${businessHours.upcomingBusinessDays.tomorrow}`;
+  }
+  businessHoursContext += `\n- Next business day: ${businessHours.upcomingBusinessDays.nextBusinessDay}`;
+  businessHoursContext += `\n- Next Monday: ${businessHours.upcomingBusinessDays.nextMonday}`;
+  businessHoursContext += `\n- Next Tuesday: ${businessHours.upcomingBusinessDays.nextTuesday}`;
 
   // 6. Additional context (can be customized per client later)
   const additionalContext = client?.additional_context || '';
@@ -125,6 +140,78 @@ async function getCallerHistory(phoneNumber: string): Promise<CallerHistory> {
   return {};
 }
 
+
+/**
+ * Calculate upcoming business days to avoid AI calendar math errors
+ */
+function calculateUpcomingBusinessDays(currentDate: Date): {
+  tomorrow?: string;
+  nextBusinessDay: string;
+  nextMonday: string;
+  nextTuesday: string;
+} {
+  const tomorrow = new Date(currentDate);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  const tomorrowFormatted = tomorrow.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'America/Phoenix'
+  });
+
+  // Find next business day (Monday-Saturday)
+  let nextBusinessDay = new Date(currentDate);
+  do {
+    nextBusinessDay.setDate(nextBusinessDay.getDate() + 1);
+  } while (nextBusinessDay.getDay() === 0); // Skip Sundays
+  
+  const nextBusinessDayFormatted = nextBusinessDay.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long', 
+    day: 'numeric',
+    timeZone: 'America/Phoenix'
+  });
+
+  // Find next Monday
+  let nextMonday = new Date(currentDate);
+  while (nextMonday.getDay() !== 1) {
+    nextMonday.setDate(nextMonday.getDate() + 1);
+  }
+  if (nextMonday.getTime() <= currentDate.getTime()) {
+    nextMonday.setDate(nextMonday.getDate() + 7);
+  }
+  
+  const nextMondayFormatted = nextMonday.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric', 
+    timeZone: 'America/Phoenix'
+  });
+
+  // Find next Tuesday
+  let nextTuesday = new Date(currentDate);
+  while (nextTuesday.getDay() !== 2) {
+    nextTuesday.setDate(nextTuesday.getDate() + 1);
+  }
+  if (nextTuesday.getTime() <= currentDate.getTime()) {
+    nextTuesday.setDate(nextTuesday.getDate() + 7);
+  }
+  
+  const nextTuesdayFormatted = nextTuesday.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'America/Phoenix'
+  });
+
+  return {
+    tomorrow: tomorrow.getDay() === 0 ? undefined : tomorrowFormatted, // Don't suggest Sunday
+    nextBusinessDay: nextBusinessDayFormatted,
+    nextMonday: nextMondayFormatted,
+    nextTuesday: nextTuesdayFormatted
+  };
+}
 
 /**
  * Get business hours information
@@ -182,12 +269,15 @@ function getBusinessHoursInfo(): BusinessHoursInfo {
     nextOpenTime = 'Monday at 8:00 AM';
   }
 
+  const upcomingBusinessDays = calculateUpcomingBusinessDays(arizonaTime);
+
   return {
     isOpen,
     currentDay,
     currentDate,
     currentTime,
-    nextOpenTime
+    nextOpenTime,
+    upcomingBusinessDays
   };
 }
 
